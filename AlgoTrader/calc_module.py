@@ -3,6 +3,11 @@ import re
 import numpy as np
 
 
+class General(object):
+    CRYPTO = "Crypto"
+    STOCK = "Stock"
+
+
 class IndicatorName(object):
     GC = "GoldenCross"
     BB = "BollingerBand"
@@ -110,9 +115,11 @@ class IndicatorNode(object):
 
 
 class BaseAlgorithm(object):
-    def __init__(self, indicate_data, exchange):
+    def __init__(self, indicate_data, exchange, calculator_type):
         self._settings = dict()
         self._exchange = exchange
+        self._calculator_type = calculator_type
+        self.calculator = self.get_calculator()
         self.base_settings(indicate_data)
         self.indicator_settings(indicate_data)
 
@@ -122,8 +129,29 @@ class BaseAlgorithm(object):
             "trade_method": indicate_data[-1]
         })
 
+    def get_calculator(self):
+        if self._calculator_type == General.CRYPTO:
+            return self.calculate_by_crypto
+        else:
+            return self.calculate_by_stock
+
     def indicator_settings(self, indicate_data):
         pass
+
+    def check_values(self):
+        return
+
+    def update_settings(self, **kwargs):
+        self._settings.update(**kwargs)
+
+    def calculate_by_crypto(self):
+        pass
+
+    def calculate_by_stock(self):
+        pass
+
+    def is_suitable_trading(self):
+        return True if self.check_values() else False
 
     def get_sma(self, values: list) -> int:
         return np.average(values)
@@ -132,6 +160,37 @@ class BaseAlgorithm(object):
 class GoldenCross(BaseAlgorithm):
     def __init__(self, indicate_data, exchange):
         super().__init__(indicate_data, exchange)
+
+    def check_values(self):
+        pass
+
+    def calculate_by_crypto(self):
+        suc, candles, msg = self._exchange.get_candle(symbol, self._settings['candle_size'],
+                                                      self._settings['long_period'] + 1)
+
+        if not suc:
+            return suc, candles, msg
+
+        short_close = candles['close'][:self._settings['short_period']]
+        long_close = candles['close'][:self._settings['long_period']]
+
+        prev_short_close = candles['close'][1:self._settings['short_period']+1]
+        prev_long_close = candles['close'][:self._settings['long_period']+1]
+
+        prev_short_sma = self.get_sma(prev_short_close)
+        prev_long_sma = self.get_sma(prev_long_close)
+
+        short_sma = self.get_sma(short_close)
+        long_sma = self.get_sma(long_close)
+
+        res = {
+            'short_sma': short_sma,
+            'long_sma': long_sma,
+            'prev_short_sma': prev_short_sma,
+            'prev_long_sma': prev_long_sma
+        }
+
+        return True, res, ''
 
 
 class BollingerBand(BaseAlgorithm):
@@ -192,7 +251,6 @@ class CCI(BaseAlgorithm):
     2. 과정에서 Redis PubSub을 받을 수 있는 pipe parameter
     3. pub이 발생한 경우 trigger, object 내부에서 데이터 변화
     4. 지속적 감시 채널에서 데이터 확인 및 거래
-    
     
     TODO
     키움, 신한I, 코인 거래소 등 Candle을 가져오고 계산할 수 있는 general calculate 함수 개발 필요.
