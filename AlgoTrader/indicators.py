@@ -17,7 +17,7 @@ class AbstractStock:
         stock class의 Abstract model
         Crpyto와 함수가 다를 수 있으므로 분리
     """
-    def __init__(self, exchange, settings):
+    def __init__(self, settings, exchange):
         self.__settings = settings
         self.__exchange = exchange
 
@@ -28,7 +28,7 @@ class AbstractCrypto:
         Stok와 함수가 다를 수 있으므로 분리
     """
 
-    def __init__(self, exchange, settings):
+    def __init__(self, settings, exchange):
         self.__exchange = exchange
         self.__settings = settings
 
@@ -77,23 +77,38 @@ class GoldenCross:
             return True, res, ''
 
         def check_values(self, values):
-            if values['yet_short_sma'] >= values['yet_long_sma']:
-                if values['short_sma'] >= values['long_sma']:
+            if values['prev_short_sma'] >= values['prev_long_sma']:
+                if values['prev_short_sma'] >= values['prev_long_sma']:
                     return True
                 else:
                     return False
             else:
                 return False
 
-    def __init__(self, exchange, settings):
+    def __init__(self, settings, exchange):
         if exchange == consts.General.STOCK:
             self._executor = self.Stock(exchange, settings)
 
         elif exchange == consts.General.CRYPTO:
             self._executor = self.Crypto(exchange, settings)
 
+    def calculator(self, symbol):
+        """
+            거래소 간 발생한 에러들에 대해 처리 및 상위 로직으로 반환
+        """
+        success, data, message = self._executor.calculate(symbol)
+        
+        if success:
+            result = self._executor.check_values(data)
+        
+        else:
+            # 에러를 어떻게 처리할 것인지?
+            result = False
+        
+        return result
 
-class BollingerBand(BaseAlgorithm):
+
+class BollingerBand:
     def __init__(self, indicate_data, exchange):
         super().__init__(indicate_data, exchange)
 
