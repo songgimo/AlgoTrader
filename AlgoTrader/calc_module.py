@@ -1,52 +1,8 @@
 import re
 
 import numpy as np
-
-
-class General(object):
-    CRYPTO = "Crypto"
-    STOCK = "Stock"
-
-
-class IndicatorName(object):
-    GC = "GoldenCross"
-    BB = "BollingerBand"
-    RSI = "RSI"
-    MACD = "MACD"
-    STC = "Stochastic"
-    CCI = "CCI"
-
-
-class OrderingWords(object):
-    BL = "BoundLower"
-    BU = "BoundUpper"
-    CBU = "CrossBoundUpper"
-    CBL = "CrossBoundLower"
-    AND = "&"
-    OR = "|"
-
-    class GC:
-        pass
-
-    class STC:
-        P_FK = "PreviousFastK"
-        P_SD = "PreviousSlowD"
-        FK = "FastK"
-        SD = "SlowD"
-
-    class MACD:
-        HISTOGRAM = "Histogram"
-        P_HISTOGRAM = "PreviousHistogram"
-        LINE = "Line"
-        P_LINE = "PreviousLine"
-
-    class CCI:
-        CCI = "CCI"
-        P_CCI = "PreviousCCI"
-
-    class RSI:
-        RSI = "RSI"
-        P_RSI = "PreviousRSI"
+import consts
+import indicators
 
 
 class IndicatorTree(object):
@@ -95,23 +51,24 @@ class IndicatorNode(object):
         data = re.findall("[\d\w]+", data.val.lower())
 
         name, indicate_data = data[0], data[1:]
-        if IndicatorName.GC in name:
-            return GoldenCross(indicate_data, self._exchange)
+        if consts.IndicatorName.GC in name:
+            return indicators.GoldenCross(indicate_data, self._exchange)
 
-        elif IndicatorName.BB in name:
-            return BollingerBand(indicate_data, self._exchange)
+        elif consts.IndicatorName.BB in name:
+            return indicators.BollingerBand(indicate_data, self._exchange)
 
-        elif IndicatorName.RSI in name:
-            return RelativeStrengthIndex(indicate_data, self._exchange)
+        elif consts.IndicatorName.RSI in name:
+            return indicators.RelativeStrengthIndex(indicate_data, self._exchange)
 
-        elif IndicatorName.MACD in name:
-            return MACD(indicate_data, self._exchange)
+        elif consts.IndicatorName.MACD in name:
+            return indicators.MACD(indicate_data, self._exchange)
 
-        elif IndicatorName.STC in name:
-            return Stochastic(indicate_data, self._exchange)
+        elif consts.IndicatorName.STC in name:
+            return indicators.Stochastic(indicate_data, self._exchange)
 
-        elif IndicatorName.CCI in name:
-            return CCI(indicate_data, self._exchange)
+        elif consts.IndicatorName.CCI in name:
+            return indicators.CCI(indicate_data, self._exchange)
+
 
 
 class BaseAlgorithm(object):
@@ -157,89 +114,6 @@ class BaseAlgorithm(object):
         return np.average(values)
 
 
-class GoldenCross(BaseAlgorithm):
-    def __init__(self, indicate_data, exchange):
-        super().__init__(indicate_data, exchange)
-
-    def check_values(self):
-        pass
-
-    def calculate_by_crypto(self):
-        suc, candles, msg = self._exchange.get_candle(symbol, self._settings['candle_size'],
-                                                      self._settings['long_period'] + 1)
-
-        if not suc:
-            return suc, candles, msg
-
-        short_close = candles['close'][:self._settings['short_period']]
-        long_close = candles['close'][:self._settings['long_period']]
-
-        prev_short_close = candles['close'][1:self._settings['short_period']+1]
-        prev_long_close = candles['close'][:self._settings['long_period']+1]
-
-        prev_short_sma = self.get_sma(prev_short_close)
-        prev_long_sma = self.get_sma(prev_long_close)
-
-        short_sma = self.get_sma(short_close)
-        long_sma = self.get_sma(long_close)
-
-        res = {
-            'short_sma': short_sma,
-            'long_sma': long_sma,
-            'prev_short_sma': prev_short_sma,
-            'prev_long_sma': prev_long_sma
-        }
-
-        return True, res, ''
-
-
-class BollingerBand(BaseAlgorithm):
-    def __init__(self, indicate_data, exchange):
-        super().__init__(indicate_data, exchange)
-
-    def indicator_settings(self, indicate_data):
-        self._settings.update({
-            "period": int(indicate_data[1]),
-            "deviation": int(indicate_data[2]),
-            "reference": indicate_data[3]
-        })
-
-
-class RelativeStrengthIndex(BaseAlgorithm):
-    def __init__(self, indicate_data, exchange):
-        super().__init__(indicate_data, exchange)
-
-    def indicator_settings(self, indicate_data):
-        self._settings.update({
-            "period": int(indicate_data[1]),
-            "bound": int(indicate_data[2])
-        })
-
-
-class MACD(BaseAlgorithm):
-    def __init__(self, indicate_data, exchange):
-        super().__init__(indicate_data, exchange)
-
-    def indicator_settings(self, indicate_data):
-        self._settings.update({
-            "short_period": int(indicate_data[1]),
-            "long_period": int(indicate_data[2]),
-            "signal_period": int(indicate_data[3]),
-            "bound": int(indicate_data[4]),
-            "reference": indicate_data[5]
-        })
-
-
-class Stochastic(BaseAlgorithm):
-    def __init__(self, indicate_data, exchange):
-        super().__init__(indicate_data, exchange)
-
-
-class CCI(BaseAlgorithm):
-    def __init__(self, indicate_data, exchange):
-        super().__init__(indicate_data, exchange)
-
-
 
 """
     Packing - unpacking에 발생하는 slippage 고민
@@ -251,6 +125,10 @@ class CCI(BaseAlgorithm):
     2. 과정에서 Redis PubSub을 받을 수 있는 pipe parameter
     3. pub이 발생한 경우 trigger, object 내부에서 데이터 변화
     4. 지속적 감시 채널에서 데이터 확인 및 거래
+    
+    BaseAlgorithm -> Stock, Crypto 로의 추상화 분리
+    
+    CCI, Stochastic등은 인터페이스로 처리해서 완전히 다르도록 처리
     
     TODO
     키움, 신한I, 코인 거래소 등 Candle을 가져오고 계산할 수 있는 general calculate 함수 개발 필요.

@@ -339,12 +339,6 @@ class MACD(BaseAlgorithm):
             else:
                 return False
 
-    # def buy(self, values):
-    #     return self.check_values(values)
-    #
-    # def sell(self, values):
-    #     return self.check_values(values)
-
     def calculate(self, symbol):
         suc, candles, msg = self.exchange.get_candle(symbol, self.settings['candle_size'], 100)
 
