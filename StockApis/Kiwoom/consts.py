@@ -39,3 +39,13 @@ class SetRealRegit:
     FilledDate = "20"
     TradeAmount = "15"
 
+
+class RequestHeader:
+    Trade = "trade"
+    Price = "price"
+    Common = "common"
+
+
+class Etc:
+    NoRepeat = 0
+    Repeat = 2
