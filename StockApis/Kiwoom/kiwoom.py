@@ -111,7 +111,7 @@ class Trade:
             self._origin_order_number
         ]
 
-        self._controller.send_order(order_parameters)
+        self._controller.send_order(*order_parameters)
 
         trade_queue = self._queue_object.get(self._rq_name)
 
@@ -185,18 +185,69 @@ class Controller:
     def __init__(self):
         self._controller = QAxWidget("KHOPENAPI.KHOpenAPICtrl.1")
 
-    def send_order(self, order_parameters: list):
+    def send_order(
+            self,
+            request_name,
+            screen_number,
+            account,
+            order_type,
+            stock_code,
+            quantity,
+            price,
+            trade_type,
+            origin_order_number
+    ):
+        wrap = [
+            request_name,
+            screen_number,
+            account,
+            order_type,
+            stock_code,
+            quantity,
+            price,
+            trade_type,
+            origin_order_number
+        ]
+
         self._controller.dynamicCall(
             'SendOrder(QString, QString, QString, int, QString, int, int, QString, QString)',
-            order_parameters
+            wrap
         )
 
-    def get_common_data(self, common_parameters: list):
-        # tx_code, rc_name, index, item_name
+    def get_common_data(
+            self,
+            transaction_code,
+            recode_name,
+            index,
+            item_name
+    ):
+        # transaction_code, recode_name, index, item_name
         # return tx_data for getting signal
+        wrap = [
+            transaction_code,
+            recode_name,
+            index,
+            item_name
+        ]
+        return self._controller.dynamicCall(
+            'GetCommData(QString, QString, int, QString)',
+            wrap
+        )
+
+    def get_common_data_with_repeat(self, common_parameters: list):
+        # transaction_code, rq_name, index, item_name
         return self._controller.dynamicCall(
             'GetCommData(QString, QString, int, QString)',
             common_parameters
+        )
+
+    def get_repeat_count(self, transaction_code, rq_name):
+        return self._controller.dynamicCall('GetRepeatCnt(QString, QString)', [transaction_code, rq_name])
+
+    def get_common_real_data(self, stock_code, real_type):
+        return self._controller.dynamicCall(
+            'GetCommRealData(QString, int)',
+            [stock_code, real_type]
         )
 
     def set_values(self, name, value):
@@ -206,10 +257,14 @@ class Controller:
             value
         )
 
-    def _request_common_data(self, common_parameters: list):
-        # name, tx_code, repeat, screen_num
+    def request_common_data(self, common_parameters: list):
+        # name, transaction_code, repeat, screen_num
         # request to KiwoomAPI and return result.
         return self._controller.dynamicCall(
             'commRqData(QString, QString, int, QString)',
             common_parameters
         )
+
+    def _set_real_reg(self, screen_number, code_list, fid_list, real_type):
+        self._controller.dynamicCall('SetRealReg(QString, QString, QString, QString)',
+                                     [screen_number, code_list, fid_list, real_type])
