@@ -64,7 +64,7 @@ class Trade:
 
         self._screen_number = stock_code
         self._validate_check = False
-        self._rq_name = None
+        self._request_name = None
         self._origin_order_number = ""
 
     def validate(self):
@@ -80,8 +80,8 @@ class Trade:
     def set_origin_order_number(self, number):
         self._origin_order_number = number
 
-    def set_rq_name(self):
-        self._rq_name = "_".join([
+    def set_request_name(self):
+        self._request_name = "_".join([
             self.__str,
             self._stock_code,
             self.order_code_object.order_str,
@@ -95,12 +95,12 @@ class Trade:
         if not self._validate_check:
             raise "validate check가 우선되어야 합니다."
 
-        if not self._rq_name:
-            self.set_rq_name()
-            self._queue_object.add(self._rq_name)
+        if not self._request_name:
+            self.set_request_name()
+            self._queue_object.add(self._request_name)
 
         order_parameters = [
-            self._rq_name,
+            self._request_name,
             self._screen_number,
             self.account_object.account_number,
             self.order_code_object.order_code,
@@ -113,7 +113,7 @@ class Trade:
 
         self._controller.send_order(*order_parameters)
 
-        trade_queue = self._queue_object.get(self._rq_name)
+        trade_queue = self._queue_object.get(self._request_name)
 
         order_number = trade_queue.get(True, timeout=10)
 
@@ -147,10 +147,10 @@ class Price:
         self._queue_object = queue_object
         self._stock_code = stock_code
 
-        self._rq_name = None
+        self._request_name = None
 
-    def set_rq_name(self, item_name):
-        self._rq_name = "_".join([
+    def set_request_name(self, item_name):
+        self._request_name = "_".join([
             self.__str,
             self._stock_code,
             item_name
@@ -159,13 +159,13 @@ class Price:
     def get_stock_information(self, item_name):
         screen_number = self._stock_code
 
-        self.set_rq_name(item_name)
+        self.set_request_name(item_name)
 
         self._controller.set_values('종목코드', self._stock_code)
-        self._queue_object.add(self._rq_name)
-        self._controller.request_common_data(self._rq_name, TxCode.Get.StockInfo, screen_number)
+        self._queue_object.add(self._request_name)
+        self._controller.request_common_data(self._request_name, TxCode.Get.StockInfo, screen_number)
 
-        stock_queue = self._queue_object.get(self._rq_name)
+        stock_queue = self._queue_object.get(self._request_name)
         raw_price = stock_queue.get(True, timeout=10)
         price = int(re.sub(r'[^\d]', '', raw_price))
 
@@ -234,37 +234,99 @@ class Controller:
             wrap
         )
 
-    def get_common_data_with_repeat(self, common_parameters: list):
-        # transaction_code, rq_name, index, item_name
+    def get_common_data_with_repeat(
+            self, 
+            transaction_code,
+            request_name,
+            index,
+            item_name
+    ):
+        wrap = [
+            transaction_code,
+            request_name,
+            index,
+            item_name
+        ]
         return self._controller.dynamicCall(
             'GetCommData(QString, QString, int, QString)',
-            common_parameters
+            wrap
         )
 
-    def get_repeat_count(self, transaction_code, rq_name):
-        return self._controller.dynamicCall('GetRepeatCnt(QString, QString)', [transaction_code, rq_name])
+    def get_repeat_count(self, transaction_code, request_name):
+        wrap = [
+            transaction_code,
+            request_name
+        ]
+        return self._controller.dynamicCall(
+            'GetRepeatCnt(QString, QString)',
+            wrap
+        )
 
     def get_common_real_data(self, stock_code, real_type):
+        wrap = [
+            stock_code,
+            real_type
+        ]
         return self._controller.dynamicCall(
             'GetCommRealData(QString, int)',
-            [stock_code, real_type]
+            wrap
         )
 
     def set_values(self, name, value):
-        return self._controller.dynamicCall(
-            'SetInputValue(QString, QString)',
+        wrap = [
             name,
             value
+        ]
+        return self._controller.dynamicCall(
+            'SetInputValue(QString, QString)',
+            wrap
         )
 
-    def request_common_data(self, common_parameters: list):
-        # name, transaction_code, repeat, screen_num
+    def request_common_data(
+            self,
+            request_name,
+            transaction_code,
+            repeat,
+            screen_number
+    ):
+        wrap = [
+            request_name,
+            transaction_code,
+            repeat,
+            screen_number
+        ]
         # request to KiwoomAPI and return result.
         return self._controller.dynamicCall(
             'commRqData(QString, QString, int, QString)',
-            common_parameters
+            wrap
         )
 
-    def _set_real_reg(self, screen_number, code_list, fid_list, real_type):
-        self._controller.dynamicCall('SetRealReg(QString, QString, QString, QString)',
-                                     [screen_number, code_list, fid_list, real_type])
+    def set_real_reg(
+            self,
+            screen_number,
+            code_list,
+            fid_list,
+            real_type
+    ):
+        wrap = [
+            screen_number,
+            code_list,
+            fid_list,
+            real_type
+        ]
+
+        return self._controller.dynamicCall(
+            'SetRealReg(QString, QString, QString, QString)',
+            wrap
+        )
+
+    def remove_real_reg(self, screen_number, stock_code):
+        wrap = [
+            screen_number, stock_code
+        ]
+
+        return self._controller.dynamicCall(
+            'SetRealRemove(QString, QString)',
+            wrap
+        )
+

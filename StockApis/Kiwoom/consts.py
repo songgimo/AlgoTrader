@@ -17,6 +17,11 @@ class TxCode:
         OrderNumber = "9203"
 
 
+class RealReg:
+    CurrentPrice = "currentprice"
+    Orderbook = "orderbook"
+
+
 class TradingCode:
     Buy = (1, "buy")
     Sell = (2, "sell")
