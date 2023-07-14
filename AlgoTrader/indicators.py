@@ -118,11 +118,13 @@ class GoldenCross(BaseIndicator):
 
     def calculator(self) -> None:
         with self._container_lock:
-            short_close = self._candle_container.close[:]
-            long_close = self._candle_container.close[:]
+            close = self._candle_container.close
 
-            prev_short_close = self._candle_container.close[:]
-            prev_long_close = self._candle_container.close[:]
+        short_close = close[:self._settings["short_period"]]
+        long_close = close[:self._settings["long_period"]]
+
+        prev_short_close = close[1:self._settings["short_period"] + 1]
+        prev_long_close = close[1:self._settings["long_period"] + 1]
 
         short_sma = self.get_sma(short_close)
         long_sma = self.get_sma(long_close)
