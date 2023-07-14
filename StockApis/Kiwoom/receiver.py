@@ -1,23 +1,25 @@
 import threading
 import queue
 
+import kiwoom
 from StockApis.Kiwoom.consts import Etc, RequestHeader, RealReg
+import typing
 
 
 class QueueController:
     def __init__(self):
         self.queue_dict = dict()
 
-    def add(self, key):
+    def add(self, key: str):
         self.queue_dict[key] = queue.Queue()
 
-    def remove(self, key):
+    def remove(self, key: str):
         del self.queue_dict[key]
 
-    def get(self, key):
+    def get(self, key: str):
         return self.queue_dict[key]
 
-    def put_data(self, key, val):
+    def put_data(self, key: str, val: str):
         self.queue_dict[key].put(val)
 
     def get_all_keys(self):
@@ -25,7 +27,12 @@ class QueueController:
 
 
 class RealRegBlock:
-    def __init__(self, real_queue_object, controller, controller_lock):
+    def __init__(
+            self,
+            controller: kiwoom.Controller,
+            controller_lock: threading.Lock,
+            real_queue_object: QueueController
+    ):
         self.block = dict()
 
         self.real_queue_object = real_queue_object
@@ -51,7 +58,7 @@ class RealRegBlock:
 
     def init_block_list(
             self,
-            code_list,
+            code_list: list,
     ):
         with self.controller_lock:
             result = self.controller.set_real_reg(
@@ -70,7 +77,7 @@ class RealRegBlock:
     
     def add_to_block(
             self,
-            stock_code,
+            stock_code: str,
     ):
         if stock_code in self.get_registered_stock_code_list():
             return
@@ -87,7 +94,7 @@ class RealRegBlock:
                 stock_code,
             }
     
-    def remove_to_block(self, stock_code):
+    def remove_to_block(self, stock_code: str):
         if stock_code not in self.get_registered_stock_code_list():
             return
 
@@ -105,7 +112,12 @@ class RealRegBlock:
 
     
 class TxEventReceiver(threading.Thread):
-    def __init__(self, controller, controller_lock, queue_object):
+    def __init__(
+            self,
+            controller: kiwoom.Controller,
+            controller_lock: threading.Lock,
+            queue_object: QueueController
+    ):
         super().__init__()
         self._controller = controller
         self._controller_lock = controller_lock
@@ -140,10 +152,15 @@ class TxEventReceiver(threading.Thread):
 
             self._queue_object.put_data(request_name, result)
 
-    def trading_event(self, transaction_code, recode_name):
+    def trading_event(self, transaction_code: int, recode_name: str):
         return self._controller.get_common_data(transaction_code, recode_name, Etc.NoRepeat, '주문번호')
 
-    def price_event(self, request_name, transaction_code, recode_name):
+    def price_event(
+            self,
+            request_name: str,
+            transaction_code: int,
+            recode_name: str
+    ):
         identifier, stock_codes, item_name = request_name.split('_')
         if item_name == "대량종목명":
             dict_ = dict()
@@ -157,14 +174,22 @@ class TxEventReceiver(threading.Thread):
 
 
 class RealTxEventReceiver(threading.Thread):
-    def __init__(self, controller, controller_lock, real_queue_object_dict):
+    def __init__(
+            self,
+            controller: kiwoom.Controller,
+            controller_lock: threading.Lock,
+            real_queue_object_dict: dict
+    ):
         super().__init__()
         self.controller = controller
         self.controller_lock = controller_lock
 
         self.__real_queue_object_dict = real_queue_object_dict
 
-    def receive_data(self, *args):
+    def run(self) -> None:
+        pass
+
+    def receive_data(self, *args) -> None:
         try:
             stock_code, real_type, real_data = args
         except:
