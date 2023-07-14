@@ -13,6 +13,10 @@ REDIS_SERVER = redis.StrictRedis(host="localhost", port=6379, db=0)
 class CandleContainer:
     def __init__(self):
         self.candle = []
+        self.close = []
+        self.high = []
+        self.low = []
+
 
 
 class IndicatorNode:
