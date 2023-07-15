@@ -1,9 +1,10 @@
+from StockApis.Kiwoom.consts import Etc, RequestHeader, RealReg
+from utils import REDIS_SERVER
+
 import threading
 import queue
 
 import kiwoom
-from StockApis.Kiwoom.consts import Etc, RequestHeader, RealReg
-import typing
 
 
 class QueueController:
@@ -27,15 +28,15 @@ class QueueController:
 
 
 class RealRegBlock:
+    """
+        RealReg의 등록 및 삭제를 원활하게 하기 위한 Object
+    """
     def __init__(
             self,
             controller: kiwoom.Controller,
             controller_lock: threading.Lock,
-            real_queue_object: QueueController
     ):
         self.block = dict()
-
-        self.real_queue_object = real_queue_object
 
         self.controller = controller
         self.controller_lock = controller_lock
@@ -70,7 +71,6 @@ class RealRegBlock:
 
         if result:
             for stock_code in code_list:
-                self.real_queue_object.add(stock_code)
                 self.block[stock_code] = {
                     stock_code,
                 }
@@ -112,6 +112,10 @@ class RealRegBlock:
 
     
 class TxEventReceiver(threading.Thread):
+    """
+        제시된 dynamic call에 대해 결과 값을 받는 event receiver
+        request_name으로 어떠한 정보들로부터 call 받았는지 확인할 수 있다.
+    """
     def __init__(
             self,
             controller: kiwoom.Controller,
@@ -122,6 +126,7 @@ class TxEventReceiver(threading.Thread):
         self._controller = controller
         self._controller_lock = controller_lock
         self._queue_object = queue_object
+        self.daemon = True
 
     def run(self) -> None:
         threading.Event().wait()
@@ -174,20 +179,24 @@ class TxEventReceiver(threading.Thread):
 
 
 class RealTxEventReceiver(threading.Thread):
+    """
+        체결같은 지속적으로 데이터를 Publish받고 싶을 때 사용하는 클래스
+        dynamic call을 통해 RealReg를 등록하고 이후 이벤트 발생 시 해당 함수의 receive_data로 hooking된다.
+
+        해당 event는 빈번하게 발생하므로, redis로 연결하여 데이터를 지속적으로 갱신한다.
+    """
     def __init__(
             self,
-            controller: kiwoom.Controller,
-            controller_lock: threading.Lock,
-            real_queue_object_dict: dict
     ):
         super().__init__()
-        self.controller = controller
-        self.controller_lock = controller_lock
+        self.daemon = True
 
-        self.__real_queue_object_dict = real_queue_object_dict
+        self.current_price_dict = dict()
+        self.orderbook_price_dict = dict()
 
     def run(self) -> None:
-        pass
+        while True:
+            pass
 
     def receive_data(self, *args) -> None:
         try:
@@ -197,8 +206,13 @@ class RealTxEventReceiver(threading.Thread):
 
         if real_type in ["주식시세", "주식체결", "주식예상체결"]:
             real_data = abs(int(real_data.split("\t")[1]))
-            queue_object = self.__real_queue_object_dict[RealReg.CurrentPrice]
-            queue_object.put_data(stock_code, real_data)
+            if stock_code not in self.current_price_dict:
+                self.current_price_dict[stock_code] = [real_data]
+            else:
+                if len(self.current_price_dict[stock_code]) > 100:
+                    self.current_price_dict[stock_code] = self.current_price_dict.pop(0)
+                self.current_price_dict[stock_code].append(real_data)
+            REDIS_SERVER.set(RealReg.CurrentPrice)
 
         elif real_type == "주식호가잔량":
             real_data = real_data.split('\t')
@@ -211,6 +225,11 @@ class RealTxEventReceiver(threading.Thread):
                 for i in range(4, 59, 6)
             }
 
-            queue_object = self.__real_queue_object_dict[RealReg.Orderbook]
-            queue_object.put_data(stock_code, [ask_orderbook, bid_orderbook])
+            if stock_code not in self.orderbook_price_dict:
+                self.orderbook_price_dict[stock_code] = [ask_orderbook, bid_orderbook]
+            else:
+                if len(self.orderbook_price_dict[stock_code]) > 100:
+                    self.orderbook_price_dict[stock_code] = self.orderbook_price_dict.pop(0)
+                self.orderbook_price_dict[stock_code].append(real_data)
 
+            REDIS_SERVER.set(RealReg.Orderbook)
