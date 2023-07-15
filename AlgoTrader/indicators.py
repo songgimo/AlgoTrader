@@ -7,57 +7,72 @@
 import numpy as np
 import threading
 from calc_module import CandleContainer
-import typing
 import re
 
 
 class Settings:
     def __init__(self, indicator_string: str):
-        self._indicator_string = indicator_string
+        self._algo_name, self.setting_words = re.findall('[\d\w]+', indicator_string)
+        self.value = dict()
 
-        self.settings = dict()
+        self.define_settings()
 
     def define_settings(self) -> None:
-        data = re.findall('[\d\w]+', self._indicator_string)
-        algo_name, setting_words = data
-
-        self.settings = {
-            "candle_size": setting_words[0],
-            "method": setting_words[-1]
+        self.value = {
+            "candle_size": self.setting_words[0],
+            "method": self.setting_words[-1]
         }
 
-        func = getattr(self, f"settings_{algo_name}")
-        func()
+        func = getattr(self, f"settings_{self._algo_name}")
+        self.setting_words.update(func())
 
     def settings_bollinger_band(self):
-        pass
+        return {
+            "period": int(self.setting_words[1]),
+            "deviation": int(self.setting_words[2]),
+            "reference": self.setting_words[3]
+        }
 
     def settings_rsi(self):
-        pass
+        return {
+            "period": int(self.setting_words[1]),
+            "bound": int(self.setting_words[2])
+        }
 
     def settings_macd(self):
-        pass
+        return {
+            "short_period": int(self.setting_words[1]),
+            "long_period": int(self.setting_words[2]),
+            "signal_period": int(self.setting_words[3]),
+            "bound": int(self.setting_words[4]),
+            "reference": self.setting_words[5]
+        }
 
     def settings_stochastic(self):
-        pass
+        return {
+            "period": int(self.setting_words[1]),
+            "bound": int(self.setting_words[2]),
+            "reference": self.setting_words[3]
+        }
 
     def settings_cci(self):
-        pass
+        return {
+            "period": int(self.setting_words[1]),
+            "bound": int(self.setting_words[2])
+        }
 
 
 class BaseIndicator:
     def __init__(
             self,
-            indicator_string: str,
             candle_container: CandleContainer,
-            container_lock: threading.Lock
+            container_lock: threading.Lock,
+            settings: Settings
     ):
-        self._indicator_string = indicator_string
         self._candle_container = candle_container
         self._container_lock = container_lock
         self._data_set = dict()
-
-        self._settings = dict()
+        self._settings = settings.value
 
     def get_sma(
             self,
