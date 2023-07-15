@@ -1,13 +1,10 @@
 import re
 import threading
-import numpy as np
 import consts
 import indicators
 
-import redis
-
-
-REDIS_SERVER = redis.StrictRedis(host="localhost", port=6379, db=0)
+from utils import REDIS_SERVER
+from StockApis.Kiwoom import consts
 
 
 class CandleContainer:
@@ -16,7 +13,6 @@ class CandleContainer:
         self.close = []
         self.high = []
         self.low = []
-
 
 
 class IndicatorNode:
@@ -41,7 +37,7 @@ class IndicatorNode:
             return indicators.BollingerBand(indicate_data, self._candle_container, self._candle_lock)
 
         elif consts.IndicatorName.RSI in name:
-            return indicators.RelativeStrengthIndex(indicate_data, self._candle_container, self._candle_lock)
+            return indicators.RSI(indicate_data, self._candle_container, self._candle_lock)
 
         elif consts.IndicatorName.MACD in name:
             return indicators.MACD(indicate_data, self._candle_container, self._candle_lock)
@@ -54,11 +50,11 @@ class IndicatorNode:
 
 
 class Stock(threading.Thread):
-    def __init__(self, stock_code, left, right):
+    def __init__(self, candle_container, stock_code, left, right):
         super(Stock, self).__init__()
         self._stock_code = stock_code
 
-        self._candle_container = CandleContainer()
+        self._candle_container = candle_container
         self._candle_lock = threading.Lock()
 
         self._left_indicator = IndicatorNode(self._candle_container, self._candle_lock, left)
@@ -66,8 +62,17 @@ class Stock(threading.Thread):
 
     def run(self) -> None:
         while True:
-            self._candle_container.candle = REDIS_SERVER.get(self._stock_code)
-            if self._left_indicator.val.calculate() and self._right_indicator.val.calculate():
+            if self._left_indicator.val.calculator() and self._right_indicator.val.calculator():
                 pass
 
+
+class Refresh(threading.Thread):
+    def __init__(self, candle_container):
+        super().__init__()
+        self._candle_container = candle_container
+
+    def run(self) -> None:
+        while True:
+            data = REDIS_SERVER.get(consts.RealReg.CurrentPrice)
+            self._candle_container.close = data
 
