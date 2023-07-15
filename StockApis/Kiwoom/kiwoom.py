@@ -1,5 +1,6 @@
 from StockApis.Kiwoom.consts import TradingCode, RequestHeader, TxCode
 import re
+from win32com import client
 
 
 class AccountInfo:
@@ -14,6 +15,9 @@ class AccountInfo:
 
 
 class SetPriceCode:
+    """
+        외부로부터 trading_code를 입력받아
+    """
     def __init__(self):
         self.trading_code = None
         self.trading_str = ""
@@ -50,6 +54,9 @@ class SetOrderCode:
 
 
 class Trade:
+    """
+        하나의 Trade Object는 하나의 stock_code를 담당한다.
+    """
     def __init__(self, controller, queue_object, stock_code, qty, price):
         self.__str = RequestHeader.Trade
         self._controller = controller
@@ -121,6 +128,9 @@ class Trade:
 
 
 class Common:
+    """
+        별도의 queue를 통한 통신이 필요없는 값들은, Common object에 들어가며 호출된다.
+    """
     def __init__(self, controller, queue_object):
         self.__str = RequestHeader.Common
         self._controller = controller
@@ -141,6 +151,9 @@ class Common:
 
 
 class Price:
+    """
+        하나의 Price Object는 하나의 stock_code를 담당한다.
+    """
     def __init__(self, controller, queue_object, stock_code):
         self.__str = RequestHeader.Price
         self._controller = controller
@@ -182,8 +195,13 @@ class Price:
 
 
 class Controller:
+    """
+        KHOpenAPICtrl과 연결하기 위해 하나의 Controller object를 각 object들이 공유하는 형태이며,
+        각 object들은 lock으로 접근을 제한한다.
+    """
     def __init__(self):
         self._controller = QAxWidget("KHOPENAPI.KHOpenAPICtrl.1")
+        # self._controller = client.Dispatch("KHOPENAPI.KHOpenAPICtrl.1")
 
     def send_order(
             self,
