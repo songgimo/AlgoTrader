@@ -212,7 +212,7 @@ class RealTxEventReceiver(threading.Thread):
                 if len(self.current_price_dict[stock_code]) > 100:
                     self.current_price_dict[stock_code] = self.current_price_dict.pop(0)
                 self.current_price_dict[stock_code].append(real_data)
-            REDIS_SERVER.set(RealReg.CurrentPrice)
+            REDIS_SERVER.set(RealReg.CurrentPrice, self.current_price_dict)
 
         elif real_type == "주식호가잔량":
             real_data = real_data.split('\t')
