@@ -1,12 +1,14 @@
 from calc_module import CandleContainer, Stock, StockRefresher
 
 import threading
+import time
 
 
-class AlgoRunner:
+class AlgoRunner(threading.Thread):
     def __init__(self, symbol_list: str, left: str, right: str, op: str):
         """
         """
+        super().__init__()
         self.symbol_list = symbol_list.split(";")
         self.thread_dict = dict()
 
@@ -29,6 +31,16 @@ class AlgoRunner:
             }
 
             self.thread_dict[symbol]["thread"].start()
+
+    def run(self) -> None:
+        self.refresher.start()
+
+        for symbol in self.thread_dict.keys():
+            self.thread_dict[symbol]["thread"].start()
+            time.sleep(0.1)
+
+        while True:
+            time.sleep(1)
 
 
 if __name__ == '__main__':

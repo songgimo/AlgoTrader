@@ -12,7 +12,7 @@ import re
 
 class Settings:
     def __init__(self, indicator_string: str):
-        self._algo_name, self.setting_words = re.findall('[\d\w]+', indicator_string)
+        self.algo_name, self.setting_words = re.findall('[\d\w]+', indicator_string)
         self.value = dict()
 
         self.define_settings()
@@ -23,7 +23,7 @@ class Settings:
             "method": self.setting_words[-1]
         }
 
-        func = getattr(self, f"settings_{self._algo_name}")
+        func = getattr(self, f"settings_{self.algo_name}")
         self.setting_words.update(func())
 
     def settings_bollinger_band(self):
