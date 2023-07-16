@@ -47,3 +47,10 @@ if __name__ == '__main__':
     lt = "Stochastic[1, 14, 50, fastK, bound_lower]"
     rt = "CCI[1, 14, 50, bound_upper]"
     op = "and"
+
+    AlgoRunner(
+        "005790;005930",
+        lt,
+        rt,
+        op
+    )
