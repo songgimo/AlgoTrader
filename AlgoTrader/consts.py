@@ -5,12 +5,12 @@ class General(object):
 
 
 class IndicatorName(object):
-    GC = "GoldenCross"
-    BB = "BollingerBand"
-    RSI = "RSI"
-    MACD = "MACD"
-    STC = "Stochastic"
-    CCI = "CCI"
+    GC = "goldencross"
+    BB = "bollingerband"
+    RSI = "rsi"
+    MACD = "macd"
+    STC = "stochastic"
+    CCI = "cci"
 
 
 class OrderingWords(object):
