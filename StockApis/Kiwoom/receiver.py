@@ -5,6 +5,7 @@ import threading
 import queue
 
 import kiwoom
+import time
 
 
 class QueueController:
@@ -129,7 +130,8 @@ class TxEventReceiver(threading.Thread):
         self.daemon = True
 
     def run(self) -> None:
-        threading.Event().wait()
+        while True:
+            time.sleep(0.1)
 
     def receive_data(self, *args):
         try:

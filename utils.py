@@ -4,7 +4,7 @@ from decimal import Decimal, getcontext, InvalidOperation
 getcontext().prec = 8
 
 
-REDIS_SERVER = redis.StrictRedis(host="localhost", port=6379)
+REDIS_SERVER = redis.Redis(host="localhost", port=6379)
 
 
 def get_redis(key, use_decimal=False):

@@ -200,8 +200,8 @@ class Controller:
         각 object들은 lock으로 접근을 제한한다.
     """
     def __init__(self):
-        self._controller = QAxWidget("KHOPENAPI.KHOpenAPICtrl.1")
-        # self._controller = client.Dispatch("KHOPENAPI.KHOpenAPICtrl.1")
+        # self._controller = QAxWidget("KHOPENAPI.KHOpenAPICtrl.1")
+        self._controller = client.Dispatch("KHOPENAPI.KHOpenAPICtrl.1")
 
     def send_order(
             self,

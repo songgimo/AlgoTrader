@@ -4,7 +4,7 @@ from StockApis.Kiwoom import kiwoom, receiver, consts
 from utils import REDIS_SERVER
 
 
-class Sender:
+class Sender(threading.Thread):
     """
         Sender는 TxReceiver와 RealTxThread의 마스터임.
 
@@ -13,6 +13,7 @@ class Sender:
         관련 스레드를 실행하고 real reg에 코드를 등록하는 역할을 함.
     """
     def __init__(self, code_list: str):
+        super().__init__()
         self.code_list = code_list.split(";")
 
         self.controller = kiwoom.Controller()
@@ -23,23 +24,7 @@ class Sender:
         self.tx_thread = None
         self.real_tx_thread = None
 
-        self.run_receivers()
-
-        self.real_current_price_setter()
-        self.real_orderbook_setter()
-
     def run(self):
-        while True:
-            time.sleep(1)
-
-    def run_receivers(self):
-        self.tx_thread = receiver.TxEventReceiver(
-            self.controller,
-            self.controller_lock,
-            self.queue_controller
-        )
-        self.real_tx_thread = receiver.RealTxEventReceiver()
-
         threads = [
             self.tx_thread,
             self.real_tx_thread
@@ -48,6 +33,19 @@ class Sender:
         for thread in threads:
             thread.start()
             time.sleep(0.1)
+
+        self.real_current_price_setter()
+        self.real_orderbook_setter()
+        while True:
+            time.sleep(1)
+
+    def set_receivers(self):
+        self.tx_thread = receiver.TxEventReceiver(
+            self.controller,
+            self.controller_lock,
+            self.queue_controller
+        )
+        self.real_tx_thread = receiver.RealTxEventReceiver()
 
     def real_current_price_setter(self):
         self.real_current_price_block = receiver.RealRegBlock(
@@ -73,7 +71,15 @@ class Sender:
 
 
 class Trader(threading.Thread):
-    def __init__(self, controller, queue_controller, stock_code, qty, price, trade_type):
+    def __init__(
+            self,
+            controller: kiwoom.Controller,
+            queue_controller: receiver.QueueController,
+            stock_code: str,
+            qty: str,
+            price: int,
+            trade_type: str
+    ):
         super().__init__()
         self.trade_object = kiwoom.Trade(
             controller,
@@ -98,9 +104,11 @@ class Trader(threading.Thread):
         self.trade_object.validate()
         self.trade_object.set_screen_number("0101")
 
-    def execute(self):
-        self.trade_object.execute()
-
     def run(self) -> None:
         while True:
             signal = REDIS_SERVER.get(consts.RequestHeader.Trade)
+
+            if signal is None:
+                continue
+
+            self.trade_object.execute()
