@@ -1,10 +1,11 @@
 import operator
 import threading
-import consts
 import indicators
+import time
 
 from utils import REDIS_SERVER
-from StockApis.Kiwoom import consts
+from AlgoTrader import consts as algo_consts
+from StockApis.Kiwoom import consts as kiwoom_consts
 
 
 class CandleContainer:
@@ -42,12 +43,12 @@ class IndicatorNode:
 
     def convert_string(self, val: str):
         class_dict = {
-            consts.IndicatorName.GC: indicators.GoldenCross,
-            consts.IndicatorName.BB: indicators.BollingerBand,
-            consts.IndicatorName.RSI: indicators.RSI,
-            consts.IndicatorName.MACD: indicators.MACD,
-            consts.IndicatorName.STC: indicators.Stochastic,
-            consts.IndicatorName.CCI: indicators.CCI
+            algo_consts.IndicatorName.GC: indicators.GoldenCross,
+            algo_consts.IndicatorName.BB: indicators.BollingerBand,
+            algo_consts.IndicatorName.RSI: indicators.RSI,
+            algo_consts.IndicatorName.MACD: indicators.MACD,
+            algo_consts.IndicatorName.STC: indicators.Stochastic,
+            algo_consts.IndicatorName.CCI: indicators.CCI
         }
         setting_object = indicators.Settings(val)
         name = setting_object.algo_name
@@ -55,7 +56,7 @@ class IndicatorNode:
         indicator_class = class_dict.get(name, None)
 
         if indicator_class:
-            return indicator_class(setting_object, self._candle_container, self._candle_lock)
+            return indicator_class(self._candle_container, self._candle_lock, setting_object)
 
         return None
 
@@ -85,7 +86,7 @@ class Stock(threading.Thread):
 
             if self._op(left_indicator.check_values(), right_indicator.check_values()):
                 data = {"symbol": self._candle_container.symbol}
-                REDIS_SERVER.set(consts.RequestHeader.Trade, data)
+                REDIS_SERVER.set(kiwoom_consts.RequestHeader.Trade, data)
 
 
 class StockRefresher(threading.Thread):
@@ -95,7 +96,9 @@ class StockRefresher(threading.Thread):
 
     def run(self) -> None:
         while True:
-            current_price_dict = REDIS_SERVER.get(consts.RealReg.CurrentPrice)
+            current_price_dict = REDIS_SERVER.get(kiwoom_consts.RealReg.CurrentPrice)
+            if current_price_dict is None:
+                time.sleep(0.1)
 
             for stock_code in current_price_dict:
                 if stock_code not in self._thread_dict.keys():
