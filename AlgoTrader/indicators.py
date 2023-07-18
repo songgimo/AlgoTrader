@@ -6,61 +6,7 @@
 """
 import numpy as np
 import threading
-from calc_module import CandleContainer
-import re
-
-
-class Settings:
-    def __init__(self, indicator_string: str):
-        self._indicator_string = re.findall('[\d\w]+', indicator_string)
-        self.algo_name, self.setting_words = self._indicator_string[0].lower(), self._indicator_string[1:]
-        self.value = dict()
-
-        self.define_settings()
-
-    def define_settings(self) -> None:
-        self.value = {
-            "candle_size": self.setting_words[0],
-            "method": self.setting_words[-1]
-        }
-
-        func = getattr(self, f"settings_{self.algo_name}")
-        self.value.update(func())
-
-    def settings_bollinger_band(self):
-        return {
-            "period": int(self.setting_words[1]),
-            "deviation": int(self.setting_words[2]),
-            "reference": self.setting_words[3]
-        }
-
-    def settings_rsi(self):
-        return {
-            "period": int(self.setting_words[1]),
-            "bound": int(self.setting_words[2])
-        }
-
-    def settings_macd(self):
-        return {
-            "short_period": int(self.setting_words[1]),
-            "long_period": int(self.setting_words[2]),
-            "signal_period": int(self.setting_words[3]),
-            "bound": int(self.setting_words[4]),
-            "reference": self.setting_words[5]
-        }
-
-    def settings_stochastic(self):
-        return {
-            "period": int(self.setting_words[1]),
-            "bound": int(self.setting_words[2]),
-            "reference": self.setting_words[3]
-        }
-
-    def settings_cci(self):
-        return {
-            "period": int(self.setting_words[1]),
-            "bound": int(self.setting_words[2])
-        }
+from objects import CandleContainer, Settings
 
 
 class BaseIndicator:

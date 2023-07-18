@@ -8,22 +8,6 @@ from AlgoTrader import consts as algo_consts
 from StockApis.Kiwoom import consts as kiwoom_consts
 
 
-class CandleContainer:
-    """
-        Candle의 OHLC값이 들어간다.
-        Refresh Thread를 통해 지속적으로 Write된다.
-        Indicator들로부터 Read된다.
-    """
-    def __init__(self, symbol: str):
-        # symbol은 005790같은 주식 코드 값이나, eth같은 symbol값이 입력된다.
-        self.symbol = symbol
-
-        self.candle = []
-        self.close = []
-        self.high = []
-        self.low = []
-
-
 class IndicatorNode:
     """
         최초 Stock Thread로부터 불러와지고 핸들링된다.

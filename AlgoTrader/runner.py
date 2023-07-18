@@ -1,4 +1,5 @@
-from calc_module import CandleContainer, Stock, StockRefresher
+from calc_module import Stock, StockRefresher
+from objects import CandleContainer
 
 import threading
 import time
@@ -16,11 +17,11 @@ class AlgoRunner(threading.Thread):
         self.right = right.replace(" ", "")
         self.op = op
 
-        self.run_stock_threads()
+        self.set_stock_threads()
 
         self.refresher = StockRefresher(self.thread_dict)
 
-    def run_stock_threads(self):
+    def set_stock_threads(self):
         for symbol in self.symbol_list:
             container = CandleContainer(symbol)
             lock = threading.Lock()
@@ -29,8 +30,6 @@ class AlgoRunner(threading.Thread):
                 "container_lock": lock,
                 "thread": Stock(container, lock, self.op, self.left, self.right)
             }
-
-            self.thread_dict[symbol]["thread"].start()
 
     def run(self) -> None:
         self.refresher.start()
@@ -48,9 +47,11 @@ if __name__ == '__main__':
     rt = "CCI[1, 14, 50, bound_upper]"
     op = "and"
 
-    AlgoRunner(
+    runner = AlgoRunner(
         "005790;005930",
         lt,
         rt,
         op
     )
+
+    runner.start()
