@@ -1,6 +1,3 @@
-"""
-    AlgoTrader에 사용되는 Object들 모음.
-"""
 import re
 
 

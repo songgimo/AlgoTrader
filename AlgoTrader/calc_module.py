@@ -6,6 +6,7 @@ import time
 from utils import REDIS_SERVER
 from AlgoTrader import consts as algo_consts
 from StockApis.Kiwoom import consts as kiwoom_consts
+from objects import CandleContainer
 
 
 class IndicatorNode:
@@ -50,7 +51,14 @@ class Stock(threading.Thread):
         main process로부터 핸들링되는 Thread이며, 트레이딩할 거래 지표를 정의한다.
         이후 지속적으로 N개의 인디케이터를 감시하고 트리거가 발동하는 경우 Kiwoom으로 거래 트리거를 보낸다.
     """
-    def __init__(self, container, lock, left, right, op):
+    def __init__(
+            self,
+            container: CandleContainer,
+            lock: threading.Lock,
+            left: str,
+            right: str,
+            op: str
+    ):
         super(Stock, self).__init__()
         self._candle_container = container
         self._candle_lock = lock
@@ -74,7 +82,7 @@ class Stock(threading.Thread):
 
 
 class StockRefresher(threading.Thread):
-    def __init__(self, thread_dict):
+    def __init__(self, thread_dict: dict):
         super().__init__()
         self._thread_dict = thread_dict
 

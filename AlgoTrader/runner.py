@@ -28,7 +28,7 @@ class AlgoRunner(threading.Thread):
             self.thread_dict[symbol] = {
                 "container": container,
                 "container_lock": lock,
-                "thread": Stock(container, lock, self.op, self.left, self.right)
+                "thread": Stock(container, lock, self.left, self.right, self.op)
             }
 
     def run(self) -> None:
