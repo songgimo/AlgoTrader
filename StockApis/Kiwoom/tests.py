@@ -6,10 +6,12 @@ def sender_test():
         "005790;"
     )
 
-    sd.set_receivers()
-    sd.real_current_price_setter()
-    sd.real_orderbook_setter()
-    # sd.join()
+    sd.start()
+
+    sd.controller.login()
+
+    sd.join()
+
 
 
 if __name__ == '__main__':
