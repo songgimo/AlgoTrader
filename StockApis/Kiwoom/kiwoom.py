@@ -1,6 +1,8 @@
 from StockApis.Kiwoom.consts import TradingCode, RequestHeader, TxCode
 import re
 from win32com import client
+from PyQt5.QAxContainer import QAxObject, QAxWidget
+from PyQt5.QtWidgets import QApplication
 
 
 class AccountInfo:
@@ -200,8 +202,11 @@ class Controller:
         각 object들은 lock으로 접근을 제한한다.
     """
     def __init__(self):
-        # self._controller = QAxWidget("KHOPENAPI.KHOpenAPICtrl.1")
-        self._controller = client.Dispatch("KHOPENAPI.KHOpenAPICtrl.1")
+        self.app = QApplication([])
+        self.controller = QAxWidget("KHOPENAPI.KHOpenAPICtrl.1")
+        # self.controller = client.Dispatch("KHOPENAPI.KHOpenAPICtrl.1")
+    def login(self):
+        self.controller.dynamicCall("CommConnect()")
 
     def send_order(
             self,
@@ -227,7 +232,7 @@ class Controller:
             origin_order_number
         ]
 
-        self._controller.dynamicCall(
+        self.controller.dynamicCall(
             'SendOrder(QString, QString, QString, int, QString, int, int, QString, QString)',
             wrap
         )
@@ -247,7 +252,7 @@ class Controller:
             index,
             item_name
         ]
-        return self._controller.dynamicCall(
+        return self.controller.dynamicCall(
             'GetCommData(QString, QString, int, QString)',
             wrap
         )
@@ -265,7 +270,7 @@ class Controller:
             index,
             item_name
         ]
-        return self._controller.dynamicCall(
+        return self.controller.dynamicCall(
             'GetCommData(QString, QString, int, QString)',
             wrap
         )
@@ -275,7 +280,7 @@ class Controller:
             transaction_code,
             request_name
         ]
-        return self._controller.dynamicCall(
+        return self.controller.dynamicCall(
             'GetRepeatCnt(QString, QString)',
             wrap
         )
@@ -285,7 +290,7 @@ class Controller:
             stock_code,
             real_type
         ]
-        return self._controller.dynamicCall(
+        return self.controller.dynamicCall(
             'GetCommRealData(QString, int)',
             wrap
         )
@@ -295,7 +300,7 @@ class Controller:
             name,
             value
         ]
-        return self._controller.dynamicCall(
+        return self.controller.dynamicCall(
             'SetInputValue(QString, QString)',
             wrap
         )
@@ -314,7 +319,7 @@ class Controller:
             screen_number
         ]
         # request to KiwoomAPI and return result.
-        return self._controller.dynamicCall(
+        return self.controller.dynamicCall(
             'commRqData(QString, QString, int, QString)',
             wrap
         )
@@ -333,7 +338,7 @@ class Controller:
             real_type
         ]
 
-        return self._controller.dynamicCall(
+        return self.controller.dynamicCall(
             'SetRealReg(QString, QString, QString, QString)',
             wrap
         )
@@ -343,7 +348,7 @@ class Controller:
             screen_number, stock_code
         ]
 
-        return self._controller.dynamicCall(
+        return self.controller.dynamicCall(
             'SetRealRemove(QString, QString)',
             wrap
         )
