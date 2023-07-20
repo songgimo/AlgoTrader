@@ -198,7 +198,7 @@ class RealTxEventReceiver(threading.Thread):
 
     def run(self) -> None:
         while True:
-            pass
+            time.sleep(0.1)
 
     def receive_data(self, *args) -> None:
         try:
@@ -235,3 +235,18 @@ class RealTxEventReceiver(threading.Thread):
                 self.orderbook_price_dict[stock_code].append(real_data)
 
             REDIS_SERVER.set(RealReg.Orderbook)
+
+
+class OnEventReceiver(threading.Thread):
+    def __init__(self, queue_controller: QueueController):
+        super().__init__()
+        self.daemon = True
+        self._queue_controller = queue_controller
+
+    def run(self) -> None:
+        while True:
+            time.sleep(0.1)
+
+    def receive_data(self, code):
+        if code == 0:
+            self._queue_controller.put_data("is_connected", "T")
