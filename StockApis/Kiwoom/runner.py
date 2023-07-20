@@ -21,8 +21,32 @@ class Sender(threading.Thread):
 
         self.queue_controller = receiver.QueueController()
 
-        self.tx_thread = None
-        self.real_tx_thread = None
+        self.tx_thread = receiver.TxEventReceiver(
+            self.controller,
+            self.controller_lock,
+            self.queue_controller
+        )
+        self.real_tx_thread = receiver.RealTxEventReceiver()
+
+        self.queue_controller.add("is_connected")
+        self.event_thread = receiver.OnEventReceiver(
+            self.queue_controller
+        )
+
+        self.eager_start_thread()
+
+        self.controller.controller.OnReceiveTrData.connect(self.tx_thread.receive_data)
+        self.controller.controller.OnReceiveRealData.connect(self.real_tx_thread.receive_data)
+        self.controller.controller.OnEventConnect.connect(self.event_thread.receive_data)
+
+    def eager_start_thread(self):
+        threads = [
+            self.event_thread
+        ]
+
+        for thread in threads:
+            thread.start()
+            time.sleep(1)
 
     def run(self):
         threads = [
@@ -36,16 +60,11 @@ class Sender(threading.Thread):
 
         self.real_current_price_setter()
         self.real_orderbook_setter()
-        while True:
-            time.sleep(1)
 
-    def set_receivers(self):
-        self.tx_thread = receiver.TxEventReceiver(
-            self.controller,
-            self.controller_lock,
-            self.queue_controller
-        )
-        self.real_tx_thread = receiver.RealTxEventReceiver()
+        while True:
+            # wait to connect KiwoomAPI
+            self.queue_controller.get("is_connected")
+            time.sleep(1)
 
     def real_current_price_setter(self):
         self.real_current_price_block = receiver.RealRegBlock(
