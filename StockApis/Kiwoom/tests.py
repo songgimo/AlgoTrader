@@ -5,8 +5,10 @@ from StockApis.Kiwoom.runner import Sender
 def sender_test():
     app = QApplication([])
     sd = Sender(
-        "005790;"
-    ).start()
+        "005930;066570"
+    )
+
+    sd.start()
     app.exec_()
 
 
