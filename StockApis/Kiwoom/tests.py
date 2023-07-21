@@ -1,17 +1,13 @@
+from PyQt5.QtWidgets import QApplication
 from StockApis.Kiwoom.runner import Sender
 
 
 def sender_test():
+    app = QApplication([])
     sd = Sender(
         "005790;"
-    )
-
-    sd.start()
-
-    sd.controller.login()
-
-    sd.join()
-
+    ).start()
+    app.exec_()
 
 
 if __name__ == '__main__':

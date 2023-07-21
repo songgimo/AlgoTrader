@@ -28,7 +28,7 @@ class Sender(threading.Thread):
         )
         self.real_tx_thread = receiver.RealTxEventReceiver()
 
-        self.queue_controller.add("is_connected")
+        self.queue_controller.add("login_queue")
         self.event_thread = receiver.OnEventReceiver(
             self.queue_controller
         )
@@ -63,8 +63,14 @@ class Sender(threading.Thread):
 
         while True:
             # wait to connect KiwoomAPI
-            self.queue_controller.get("is_connected")
+            queue = self.queue_controller.get("login_queue")
+            try:
+                data = queue.get(timeout=10)
+                break
+            except:
+                print("로그인 대기 중입니다.")
             time.sleep(1)
+        print("로그인 완료.")
 
     def real_current_price_setter(self):
         self.real_current_price_block = receiver.RealRegBlock(

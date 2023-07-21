@@ -2,7 +2,6 @@ from StockApis.Kiwoom.consts import TradingCode, RequestHeader, TxCode
 import re
 from win32com import client
 from PyQt5.QAxContainer import QAxObject, QAxWidget
-from PyQt5.QtWidgets import QApplication
 
 
 class AccountInfo:
@@ -202,11 +201,12 @@ class Controller:
         각 object들은 lock으로 접근을 제한한다.
     """
     def __init__(self):
-        self.app = QApplication([])
         self.controller = QAxWidget("KHOPENAPI.KHOpenAPICtrl.1")
-        # self.controller = client.Dispatch("KHOPENAPI.KHOpenAPICtrl.1")
-    def login(self):
         self.controller.dynamicCall("CommConnect()")
+        # self.controller = client.Dispatch("KHOPENAPI.KHOpenAPICtrl.1")
+
+    # def login(self):
+    #     self.controller.dynamicCall("CommConnect()")
 
     def send_order(
             self,

@@ -249,4 +249,4 @@ class OnEventReceiver(threading.Thread):
 
     def receive_data(self, code):
         if code == 0:
-            self._queue_controller.put_data("is_connected", "T")
+            self._queue_controller.put_data("login_queue", "T")
