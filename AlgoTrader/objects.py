@@ -16,6 +16,9 @@ class CandleContainer:
         self.high = []
         self.low = []
 
+    def set_candle(self, value):
+        self.candle = value
+
 
 class Settings:
     def __init__(self, indicator_string: str):
