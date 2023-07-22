@@ -60,6 +60,11 @@ class BaseIndicator:
     
 
 class GoldenCross(BaseIndicator):
+    """
+        입력받은 close data를 기반으로 다음을 구한다.
+            1. 단기 이평선, 장기 이평선
+            2. 전 단기 이평선, 전 장기 이평선
+    """
     def __init__(
             self,
             *args
