@@ -19,6 +19,9 @@ class CandleContainer:
     def set_candle(self, value):
         self.candle = value
 
+    def set_close(self, value):
+        self.close = value
+
 
 class Settings:
     def __init__(self, indicator_string: str):
@@ -37,7 +40,13 @@ class Settings:
         func = getattr(self, f"settings_{self.algo_name}")
         self.value.update(func())
 
-    def settings_bollinger_band(self):
+    def settings_goldencross(self):
+        return {
+            "short_period": int(self.setting_words[1]),
+            "long_period": int(self.setting_words[2])
+        }
+
+    def settings_bollingerband(self):
         return {
             "period": int(self.setting_words[1]),
             "deviation": int(self.setting_words[2]),
