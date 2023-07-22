@@ -332,21 +332,28 @@ class CCI(BaseIndicator):
     def calculator(self) -> None:
         with self._container_lock:
             close = self._candle_container.close
-            high = self._candle_container.high
-            low = self._candle_container.low
 
+        candle_size = self._settings["candle_size"]
         period = self._settings["period"]
 
-        sums = np.array(high + low + close)
-        typical_price = np.divide(sums, 3)
+        typical_price_list = []
+        for n in range(0, len(close), candle_size):
+            close_by_period = close[n:n+candle_size]
+
+            high, low = max(close_by_period), min(close_by_period)
+            latest = close_by_period[0]
+
+            typical_price = (high + low + latest) / 3
+
+            typical_price_list.append(typical_price)
 
         cci_list = []
         for n in range(2):
-            period_sma = self.get_sma(typical_price[n:period + n])
-            distance = np.absolute(np.subtract(period_sma, typical_price[n:period + n]))
+            period_sma = self.get_sma(typical_price_list[n:period + n])
+            distance = np.absolute(np.subtract(period_sma, typical_price_list[n:period + n]))
 
             mean_deviation = np.sum(distance) / period
-            subtract_typical = typical_price[-2 + n] - period_sma
+            subtract_typical = typical_price_list[-2 + n] - period_sma
             cci = np.divide(subtract_typical, 0.015 * mean_deviation)
 
             cci_list.append(cci)
