@@ -71,8 +71,9 @@ class Settings:
     def settings_stochastic(self):
         return {
             "period": int(self.setting_words[1]),
-            "bound": int(self.setting_words[2]),
-            "reference": self.setting_words[3]
+            "period_m": int(self.setting_words[2]),
+            "period_t": int(self.setting_words[3]),
+            "reference": self.setting_words[4]
         }
 
     def settings_cci(self):
