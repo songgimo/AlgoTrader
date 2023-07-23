@@ -50,7 +50,7 @@ class Settings:
         return {
             "period": int(self.setting_words[1]),
             "deviation": int(self.setting_words[2]),
-            "reference": self.setting_words[3]
+            "line": self.setting_words[3]
         }
 
     def settings_rsi(self):

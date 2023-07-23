@@ -117,18 +117,18 @@ class BollingerBand(BaseIndicator):
         return "bollingerband"
 
     def check_values(self) -> bool:
-        reference = self._settings["reference"]
+        line = self._settings["line"]
         if self._settings["method"] == "cross_bound_upper":
-            # 이전 perb는 reference line(upper, lower, middle)을 넘지 않았음
-            # 현재 perb는 reference line(upper, lower, middle)을 넘은 상태임
+            # 이전 perb는 line line(upper, lower, middle)을 넘지 않았음
+            # 현재 perb는 line line(upper, lower, middle)을 넘은 상태임
 
-            if self._data_set["prev"]["perb"] < self._data_set["prev"][reference] \
-                    and self._data_set["latest"]["preb"] > self._data_set[reference]:
+            if self._data_set["prev"]["perb"] < self._data_set["prev"][line] \
+                    and self._data_set["latest"]["preb"] > self._data_set[line]:
                 return True
         
         elif self._settings["method"] == "cross_bound_lower":
-            if self._data_set["prev"]["preb"] > self._data_set["prev"][reference] \
-                    and self._data_set["latest"]["preb"] < self._data_set[reference]:
+            if self._data_set["prev"]["preb"] > self._data_set["prev"][line] \
+                    and self._data_set["latest"]["preb"] < self._data_set[line]:
                 return True
         return False
         
