@@ -5,13 +5,10 @@ from AlgoTrader.calc_module import (
 from objects import CandleContainer
 
 import threading
-"""
-test할것
-    1. GoldenCross를 포함한 BaseIndicator들의 계산식 체크 필요.
-"""
+import inspect
 
 
-class TestClass:
+class TClass:
     """
         golden cross:
     """
@@ -33,6 +30,13 @@ class TestClass:
         self.lt = "Stochastic[1, 14, 50, fastK, bound_lower]"
         self.rt = "GoldenCross[1, 14, 50, bound_upper]"
         self.op = "and"
+
+    def total_test_in_indicators(self):
+        for name, func in inspect.getmembers(self):
+            if name.startswith("test"):
+                print(f"start_function, {name}")
+                result = func()
+                print(result)
 
     def test_golden_cross(self):
         """
@@ -166,4 +170,5 @@ if __name__ == '__main__':
     cd = CandleContainer("005930")
     cd.set_candle(test_orderbook["005930"])
     cd.set_close(test_orderbook["005930"])
-    tc = TestClass(cd)
+    tc = TClass(cd)
+    tc.total_test_in_indicators()
