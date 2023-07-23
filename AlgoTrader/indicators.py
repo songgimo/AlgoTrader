@@ -245,12 +245,10 @@ class MACD(BaseIndicator):
         with self._container_lock:
             candles = self._candle_container.close
             
-        sync = self._settings["long_period"] - self._settings["short_period"]
-        short_ema_list = self.get_ema(candles, self._settings["short_period"])[sync:]
+        short_ema_list = self.get_ema(candles, self._settings["short_period"])
         long_ema_list = self.get_ema(candles, self._settings["long_period"])
 
         macd_line = np.array(short_ema_list) - np.array(long_ema_list)
-        
         prev_macd_line = macd_line[:-1]
 
         signal_line = self.get_ema(macd_line, self._settings['signal_period'])
@@ -270,14 +268,17 @@ class MACD(BaseIndicator):
                 'prev': prev_macd_histogram,
                 'latest': macd_histogram
             }
-    def get_ema(self, candles, period):
-        previous_ema = (np.sum(candles[:period]) / period)
+
+    def get_ema(self, candles, period) -> list:
+        # 지수 이동 평균, [oldest, ... latest]
         multipliers = (2 / (period + 1))
-        ema_list = []
 
-        for candle in candles[period+1:]:
-            previous_ema = (candle - previous_ema) * multipliers + previous_ema
+        reversed_data = list(reversed(candles[:period]))
 
+        previous_ema = reversed_data[0]
+        ema_list = [previous_ema]
+        for candle in reversed_data[1:]:
+            previous_ema = (candle * multipliers) + (previous_ema * (1 - multipliers))
             ema_list.append(previous_ema)
 
         return ema_list
