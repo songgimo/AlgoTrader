@@ -170,8 +170,10 @@ class BollingerBand(BaseIndicator):
         with self._container_lock:
             candles = self._candle_container.close
 
-        prev_dict = self.get_band_index(candles[1:])
-        latest_dict = self.get_band_index(candles)
+        period = self._settings["period"]
+
+        prev_dict = self.get_band_index(candles[period:period*2])
+        latest_dict = self.get_band_index(candles[:period])
 
         self._data_set = {
             "prev": prev_dict,
@@ -189,31 +191,11 @@ class RSI(BaseIndicator):
     def __repr__(self):
         return "rsi"
 
-    def calculator(self) -> None:
-        with self._container_lock:
-            candles = self._candle_container.close
-        
-        period = self._settings["period"]
-        
-        differences = np.array(candles['close'][1:]) - np.array(candles['close'][:-1])
-        prev_average_gain = np.sum(differences[:period][differences[:period] > 0]) / period
-        prev_average_loss = np.sum(differences[:period][differences[:period] < 0]) / period
-        
-        for diff in differences[period:-1]:
-            prev_average_gain = ((prev_average_gain * (period - 1)) + (0 if diff < 0 else diff)) / period
-            prev_average_loss = ((prev_average_loss * (period - 1)) - (0 if diff > 0 else diff)) / period
+    def get_average_gain_loss(self, differences):
+        gain = np.average(np.sum(differences[differences > 0]))
+        loss = np.average(np.sum(differences[differences < 0]))
 
-        prev_rsi = self.get_rsi(prev_average_gain, prev_average_loss)
-
-        average_gain = ((prev_average_gain * (period - 1)) + (0 if differences[-1] < 0 else differences[-1])) / period
-        average_loss = ((prev_average_loss * (period - 1)) - (0 if differences[-1] > 0 else differences[-1])) / period
-        
-        rsi = self.get_rsi(average_gain, average_loss)
-        
-        self._data_set = {
-            "latest": rsi,
-            "prev": prev_rsi
-        }
+        return gain, loss
 
     def get_rsi(self, gain, loss) -> float:
         rs = abs(gain / loss)
@@ -221,6 +203,35 @@ class RSI(BaseIndicator):
         rsi = 100 - (100 / (1 + rs))
 
         return rsi
+
+    def calculator(self) -> None:
+        with self._container_lock:
+            candles = self._candle_container.close
+        
+        period = self._settings["period"]
+        
+        differences = np.array(candles[1:]) - np.array(candles[:-1])
+
+        latest_differences = differences[:period]
+        prev_differences = differences[period:period*2]
+
+        prev_average_gain, prev_average_loss = self.get_average_gain_loss(prev_differences)
+        latest_average_gain, latest_average_loss = self.get_average_gain_loss(latest_differences)
+
+        # for diff in differences[period:-1]:
+        #     prev_average_gain = ((prev_average_gain * (period - 1)) + (0 if diff < 0 else diff)) / period
+        #     prev_average_loss = ((prev_average_loss * (period - 1)) - (0 if diff > 0 else diff)) / period
+
+        # average_gain = ((prev_average_gain * (period - 1)) + (0 if differences[-1] < 0 else differences[-1])) / period
+        # average_loss = ((prev_average_loss * (period - 1)) - (0 if differences[-1] > 0 else differences[-1])) / period
+
+        prev_rsi = self.get_rsi(prev_average_gain, prev_average_loss)
+        rsi = self.get_rsi(latest_average_gain, latest_average_loss)
+        
+        self._data_set = {
+            "latest": rsi,
+            "prev": prev_rsi
+        }
 
 
 class MACD(BaseIndicator):
