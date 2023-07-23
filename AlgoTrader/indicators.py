@@ -119,20 +119,23 @@ class BollingerBand(BaseIndicator):
     def check_values(self) -> bool:
         reference = self._settings["reference"]
         if self._settings["method"] == "cross_bound_upper":
-            # lower -> upper로 band가 cross된다..!
+            # 이전 perb는 reference line(upper, lower, middle)을 넘지 않았음
+            # 현재 perb는 reference line(upper, lower, middle)을 넘은 상태임
 
-            if self._data_set["prev"]["candle"] < self._data_set["prev"][reference] \
-                    and self._data_set["latest"]["candle"] > self._data_set[reference]:
+            if self._data_set["prev"]["perb"] < self._data_set["prev"][reference] \
+                    and self._data_set["latest"]["preb"] > self._data_set[reference]:
                 return True
         
         elif self._settings["method"] == "cross_bound_lower":
-            # upper -> lower로 band가 cross된다..!
-            if self._data_set["prev"]["candle"] > self._data_set["prev"][reference] \
-                    and self._data_set["latest"]["candle"] < self._data_set[reference]:
+            if self._data_set["prev"]["preb"] > self._data_set["prev"][reference] \
+                    and self._data_set["latest"]["preb"] < self._data_set[reference]:
                 return True
         return False
         
     def get_band_index(self, candles: list):
+        """
+            perb: 하한선에 위치한다면 0, 상한선에 위치한다면 1
+        """
         sma = self.get_sma(candles)
         deviation = self.get_deviation(candles)
 
@@ -140,38 +143,40 @@ class BollingerBand(BaseIndicator):
         upper = sma + (deviation * self._settings["deviation"])
         lower = sma - (deviation * self._settings["deviation"])
 
+        perb = (candles[0] - lower) / (upper - lower)
+        band_width = (upper - lower) / middle
+
         return {
             "middle": middle,
             "upper": upper,
             "lower": lower,
+            "perb": perb,
+            "band_width": band_width
         }
+
+    def get_deviation(self, candles: list) -> float:
+        average = np.average(candles)
+
+        sub_average = np.subtract(candles, average)
+        exponent = np.power(sub_average, 2)
+
+        variance = np.sum(exponent) / (len(candles) - 1)
+
+        deviation = np.sqrt(abs(variance))
+
+        return deviation
 
     def calculator(self) -> None:
         with self._container_lock:
-            candles = self._candle_container.close[:]
+            candles = self._candle_container.close
 
-        prev_dict = self.get_band_index(candles[:-1])
-        latest_dict = self.get_band_index(candles[1:])
-
-        prev_dict.update({"candle": 1})
-        latest_dict.update({"candle": 0})
+        prev_dict = self.get_band_index(candles[1:])
+        latest_dict = self.get_band_index(candles)
 
         self._data_set = {
             "prev": prev_dict,
             "latest": latest_dict
         }
-
-    def get_deviation(self, candles: list) -> float:
-        average = np.sum(candles) / len(candles)
-
-        sub_average = np.subtract(candles, average)
-        exponent = np.power(sub_average, 2)
-
-        result = np.sum(exponent) / (len(candles) - 1)
-
-        deviation = np.sqrt(abs(result))
-
-        return deviation
 
 
 class RSI(BaseIndicator):
