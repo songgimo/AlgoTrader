@@ -25,9 +25,7 @@ class BaseIndicator:
             self,
             values: list
     ) -> float:
-        sma = np.sum(values) / len(values)
-
-        return sma
+        return np.average(values)
 
     def bound_checker(self) -> bool:
         if self._settings["method"] == "bound_upper":
@@ -245,7 +243,6 @@ class MACD(BaseIndicator):
         with self._container_lock:
             candles = self._candle_container.close
 
-
         short_ema_list = self.get_ema(candles, self._settings["short_period"])
         long_ema_list = self.get_ema(candles, self._settings["long_period"])
 
@@ -360,12 +357,12 @@ class CCI(BaseIndicator):
         with self._container_lock:
             close = self._candle_container.close
 
-        candle_size = self._settings["candle_size"]
+        chart_range = self._settings["reference"]
         period = self._settings["period"]
 
         typical_price_list = []
-        for n in range(0, len(close), candle_size):
-            close_by_period = close[n:n+candle_size]
+        for n in range(0, len(close)):
+            close_by_period = close[n:n+chart_range]
 
             high, low = max(close_by_period), min(close_by_period)
             latest = close_by_period[0]
