@@ -74,7 +74,7 @@ class TClass:
             string_
         )
 
-        self.test_by_indicator_class(indi_node.indicator_class)
+        return self.test_by_indicator_class(indi_node.indicator_class)
 
     def test_rsi(self):
         """
@@ -122,11 +122,12 @@ class TClass:
                 - period: 계산될 캔들의 갯수
                 - period_m: fastD를 계산할 기간
                 - period_t: slowD를 계산할 기간
+                - bound: 숫자 형태의 트리거 라인 설정
                 - reference: fastK, fastD, slowK, slowD의 참조할 지표 상세
                 - method: 트리거 발생 조건
 
         """
-        string_ = "Stochastic[1, 14, 50, fastK, bound_lower]"
+        string_ = "Stochastic[1, 14, 3, 3, 50, fastK, bound_lower]"
         indi_node = IndicatorNode(
             self.candle_container,
             self.lock,
@@ -140,11 +141,12 @@ class TClass:
             cci
                 - candle_size: 캔들의 규모 (실시간, 1분, 5분, 10분, 30분 등등)
                 - period: 계산될 캔들의 갯수
+                - reference: high, low, close가 계산될 candle의 range
                 - bound: 숫자 형태의 트리거 라인 설정
                 - method: 트리거 발생 조건
 
         """
-        string_ = "CCI[1, 14, 50, bound_upper]"
+        string_ = "CCI[1, 14, 50, 3, bound_upper]"
         indi_node = IndicatorNode(
             self.candle_container,
             self.lock,
@@ -155,6 +157,8 @@ class TClass:
 
     def test_by_indicator_class(self, indi_class):
         indi_class.calculator()
+
+        print(indi_class._data_set)
 
         result = indi_class.check_values()
         print(result)
@@ -171,4 +175,4 @@ if __name__ == '__main__':
     cd.set_candle(test_orderbook["005930"])
     cd.set_close(test_orderbook["005930"])
     tc = TClass(cd)
-    tc.total_test_in_indicators()
+    tc.test_cci()

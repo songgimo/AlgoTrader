@@ -33,7 +33,7 @@ class Settings:
 
     def define_settings(self) -> None:
         self.value = {
-            "candle_size": self.setting_words[0],
+            "candle_size": int(self.setting_words[0]),
             "method": self.setting_words[-1].lower()
         }
 
@@ -80,5 +80,6 @@ class Settings:
     def settings_cci(self):
         return {
             "period": int(self.setting_words[1]),
-            "bound": int(self.setting_words[2])
+            "bound": int(self.setting_words[2]),
+            "reference": int(self.setting_words[3])
         }
