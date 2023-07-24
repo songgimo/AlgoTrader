@@ -244,29 +244,39 @@ class MACD(BaseIndicator):
     def calculator(self) -> None:
         with self._container_lock:
             candles = self._candle_container.close
-            
+
+
         short_ema_list = self.get_ema(candles, self._settings["short_period"])
         long_ema_list = self.get_ema(candles, self._settings["long_period"])
 
+        max_len = min(len(short_ema_list), len(long_ema_list))
+
+        short_ema_list = short_ema_list[-max_len:]
+        long_ema_list = long_ema_list[-max_len:]
+
         macd_line = np.array(short_ema_list) - np.array(long_ema_list)
-        prev_macd_line = macd_line[:-1]
+
+        latest_macd_line = macd_line[-1]
+        prev_macd_line = macd_line[-2]
 
         signal_line = self.get_ema(macd_line, self._settings['signal_period'])
-        prev_signal_line = signal_line[:-1]
 
-        prev_macd_histogram = prev_macd_line[-1] - prev_signal_line[-1]
-        macd_histogram = macd_line[-1] - signal_line[-1]
+        latest_signal_line = signal_line[-1]
+        prev_signal_line = signal_line[-2]
+
+        prev_macd_histogram = prev_macd_line - prev_signal_line
+        latest_macd_histogram = latest_macd_line - latest_signal_line
 
         if self._settings['reference'] == 'line':
             self._data_set = {
-                'prev': prev_macd_line[-1],
-                'latest': macd_line[-1],
+                'prev': prev_macd_line,
+                'latest': macd_line,
             }
 
         elif self._settings['reference'] == 'histogram':
             self._data_set = {
                 'prev': prev_macd_histogram,
-                'latest': macd_histogram
+                'latest': latest_macd_histogram
             }
 
     def get_ema(self, candles, period) -> list:
