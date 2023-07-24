@@ -172,7 +172,7 @@ class BollingerBand(BaseIndicator):
 
         period = self._settings["period"]
 
-        prev_dict = self.get_band_index(candles[period:period*2])
+        prev_dict = self.get_band_index(candles[1:period+1])
         latest_dict = self.get_band_index(candles[:period])
 
         self._data_set = {
@@ -213,7 +213,7 @@ class RSI(BaseIndicator):
         differences = np.array(candles[1:]) - np.array(candles[:-1])
 
         latest_differences = differences[:period]
-        prev_differences = differences[period:period*2]
+        prev_differences = differences[1:period+1]
 
         prev_average_gain, prev_average_loss = self.get_average_gain_loss(prev_differences)
         latest_average_gain, latest_average_loss = self.get_average_gain_loss(latest_differences)
