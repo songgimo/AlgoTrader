@@ -34,7 +34,7 @@ class Settings:
     def define_settings(self) -> None:
         self.value = {
             "candle_size": self.setting_words[0],
-            "method": self.setting_words[-1]
+            "method": self.setting_words[-1].lower()
         }
 
         func = getattr(self, f"settings_{self.algo_name}")
@@ -50,7 +50,7 @@ class Settings:
         return {
             "period": int(self.setting_words[1]),
             "deviation": int(self.setting_words[2]),
-            "line": self.setting_words[3]
+            "line": self.setting_words[3].lower()
         }
 
     def settings_rsi(self):
@@ -65,7 +65,7 @@ class Settings:
             "long_period": int(self.setting_words[2]),
             "signal_period": int(self.setting_words[3]),
             "bound": int(self.setting_words[4]),
-            "reference": self.setting_words[5]
+            "reference": self.setting_words[5].lower()
         }
 
     def settings_stochastic(self):
@@ -73,7 +73,8 @@ class Settings:
             "period": int(self.setting_words[1]),
             "period_m": int(self.setting_words[2]),
             "period_t": int(self.setting_words[3]),
-            "reference": self.setting_words[4]
+            "bound": int(self.setting_words[4]),
+            "reference": self.setting_words[5].lower()
         }
 
     def settings_cci(self):
