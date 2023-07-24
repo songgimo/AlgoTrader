@@ -1,0 +1,8 @@
+# docker-compose.yml
+version: '3'
+services:
+    redis:
+        image: redis:latest
+        ports:
+            - "127.0.0.1:25100:6379"
+        command: redis-server --save ""
