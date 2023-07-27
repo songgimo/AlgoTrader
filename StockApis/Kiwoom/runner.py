@@ -1,5 +1,7 @@
 import threading
 import time
+import atexit
+
 from StockApis.Kiwoom import kiwoom, receiver, consts
 from utils import REDIS_SERVER
 
@@ -139,3 +141,27 @@ class Trader(threading.Thread):
                 continue
 
             self.trade_object.execute()
+
+
+def delete_kiwoom_data():
+    try:
+        keys = [
+            consts.RealReg.CurrentPrice,
+            consts.RealReg.Orderbook
+        ]
+        REDIS_SERVER.delete(keys)
+    except:
+        print("fail to delete kiwoom data")
+
+
+if __name__ == '__main__':
+    from PyQt5.QtWidgets import QApplication
+    app = QApplication([])
+    sd = Sender(
+        "005930;066570"
+    )
+
+    atexit.register(delete_kiwoom_data)
+
+    sd.start()
+    app.exec_()
