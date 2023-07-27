@@ -1,7 +1,11 @@
 import redis
 import json
+import configparser
 from decimal import Decimal, getcontext, InvalidOperation
+
+
 getcontext().prec = 8
+
 
 
 class RedisController:
@@ -86,3 +90,6 @@ class DecimalDecoder(json.JSONDecoder):
 
 
 REDIS_SERVER = RedisController()
+
+CONFIG = configparser.ConfigParser()
+CONFIG.read('./settings.ini')
