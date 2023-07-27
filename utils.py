@@ -1,11 +1,13 @@
 import redis
 import json
 import configparser
+import sys
 from decimal import Decimal, getcontext, InvalidOperation
 
 
-getcontext().prec = 8
+DEBUG = True if 'pydevd' in sys.modules else False
 
+getcontext().prec = 8
 
 
 class RedisController:
