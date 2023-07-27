@@ -219,10 +219,19 @@ class Trade:
     """
         하나의 Trade Object는 하나의 stock_code를 담당한다.
     """
-    def __init__(self, controller, queue_object, stock_code, qty, price):
+    def __init__(
+            self,
+            controller: Controller,
+            controller_lock: threading.Lock,
+            queue_controller: receiver.QueueController,
+            stock_code: str,
+            qty: str,
+            price: int,
+    ):
         self.__str = RequestHeader.Trade
         self._controller = controller
-        self._queue_object = queue_object
+        self._controller_lock = controller_lock
+        self._queue_object = queue_controller
         self._stock_code = stock_code
         self._qty = qty
         self._price = price
@@ -280,7 +289,8 @@ class Trade:
             self._origin_order_number
         ]
 
-        self._controller.send_order(*order_parameters)
+        with self._controller_lock:
+            self._controller.send_order(*order_parameters)
 
         trade_queue = self._queue_object.get(self._request_name)
 
