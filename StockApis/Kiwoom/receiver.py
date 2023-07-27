@@ -128,10 +128,10 @@ class TxEventReceiver(threading.Thread):
         self._controller_lock = controller_lock
         self._queue_object = queue_object
         self.daemon = True
+        self.event = threading.Event()
 
     def run(self) -> None:
-        while True:
-            time.sleep(0.1)
+        self.event.wait()
 
     def receive_data(self, *args):
         try:
@@ -196,9 +196,10 @@ class RealTxEventReceiver(threading.Thread):
         self.current_price_dict = dict()
         self.orderbook_price_dict = dict()
 
+        self.event = threading.Event()
+
     def run(self) -> None:
-        while True:
-            time.sleep(0.1)
+        self.event.wait()
 
     def receive_data(self, *args) -> None:
         try:
@@ -242,10 +243,10 @@ class OnEventReceiver(threading.Thread):
         super().__init__()
         self.daemon = True
         self._queue_controller = queue_controller
+        self.event = threading.Event()
 
     def run(self) -> None:
-        while True:
-            time.sleep(0.1)
+        self.event.wait()
 
     def receive_data(self, code):
         if code == 0:
