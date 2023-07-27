@@ -6,7 +6,9 @@
 """
 import numpy as np
 import threading
+
 from objects import CandleContainer, Settings
+from utils import DEBUG
 
 
 class BaseIndicator:
@@ -46,6 +48,9 @@ class BaseIndicator:
         return False
 
     def check_values(self) -> bool:
+        if DEBUG:
+            print(self._settings)
+
         result = [
             self.bound_checker(),
             self.cross_bound_checker()

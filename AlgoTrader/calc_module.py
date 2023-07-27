@@ -3,7 +3,7 @@ import threading
 import indicators
 import time
 
-from utils import REDIS_SERVER
+from utils import REDIS_SERVER, DEBUG
 from AlgoTrader import consts as algo_consts
 from StockApis.Kiwoom import consts as kiwoom_consts
 from objects import CandleContainer
@@ -76,9 +76,15 @@ class Stock(threading.Thread):
             left_indicator.calculator()
             right_indicator.calculator()
 
-            if self._op(left_indicator.check_values(), right_indicator.check_values()):
+            left_val, right_val = left_indicator.check_values(), right_indicator.check_values()
+
+            if self._op(left_val, right_val):
                 data = {"symbol": self._candle_container.symbol}
                 REDIS_SERVER.set(kiwoom_consts.RequestHeader.Trade, data)
+
+            if DEBUG:
+                print(left_val, right_val)
+                time.sleep(10)
 
 
 class StockRefresher(threading.Thread):
