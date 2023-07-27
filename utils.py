@@ -8,7 +8,7 @@ class RedisController:
     def __init__(self):
         self._server = redis.Redis(host="127.0.0.1", port=25100)
 
-    def get(self, key, use_decimal=False):
+    def get(self, key: str, use_decimal=False):
         try:
             value = self._server.get(key)
 
@@ -24,9 +24,12 @@ class RedisController:
         except:
             return None
 
-    def set(self, key, value):
+    def set(self, key: str, value: str):
         result = self._server.set(key, json.dumps(value))
         return result
+
+    def delete(self, keys: list):
+        self._server.delete(*keys)
 
 
 class DecimalDecoder(json.JSONDecoder):
