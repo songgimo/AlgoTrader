@@ -4,24 +4,29 @@ from decimal import Decimal, getcontext, InvalidOperation
 getcontext().prec = 8
 
 
-REDIS_SERVER = redis.Redis(host="localhost", port=6379)
+class RedisController:
+    def __init__(self):
+        self._server = redis.Redis(host="127.0.0.1", port=25100)
 
+    def get(self, key, use_decimal=False):
+        try:
+            value = self._server.get(key)
 
-def get_redis(key, use_decimal=False):
-    try:
-        value = REDIS_SERVER.get(key)
+            if not value:
+                return None
 
-        if not value:
+            if use_decimal:
+                json_to_dict_value = json.loads(value, cls=DecimalDecoder)
+            else:
+                json_to_dict_value = json.loads(value)
+
+            return json_to_dict_value
+        except:
             return None
 
-        if use_decimal:
-            json_to_dict_value = json.loads(value, cls=DecimalDecoder)
-        else:
-            json_to_dict_value = json.loads(value)
-
-        return json_to_dict_value
-    except:
-        return None
+    def set(self, key, value):
+        result = self._server.set(key, json.dumps(value))
+        return result
 
 
 class DecimalDecoder(json.JSONDecoder):
@@ -75,3 +80,6 @@ class DecimalDecoder(json.JSONDecoder):
         self.decode_converter(decode_with_decimal, decoded, is_dic)
 
         return decode_with_decimal
+
+
+REDIS_SERVER = RedisController()
