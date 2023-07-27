@@ -234,7 +234,7 @@ class RealTxEventReceiver(threading.Thread):
                     self.orderbook_price_dict[stock_code] = self.orderbook_price_dict.pop(0)
                 self.orderbook_price_dict[stock_code].append(real_data)
 
-            REDIS_SERVER.set(RealReg.Orderbook)
+            REDIS_SERVER.set(RealReg.Orderbook, self.orderbook_price_dict)
 
 
 class OnEventReceiver(threading.Thread):
