@@ -3,7 +3,7 @@ import time
 import atexit
 
 from StockApis.Kiwoom import kiwoom, receiver, consts
-from utils import REDIS_SERVER
+from utils import REDIS_SERVER, CONFIG, DEBUG
 
 
 class Sender(threading.Thread):
@@ -14,14 +14,20 @@ class Sender(threading.Thread):
         lock과 queue를 지정하며
         관련 스레드를 실행하고 real reg에 코드를 등록하는 역할을 함.
     """
-    def __init__(self, code_list: str):
+    def __init__(
+            self,
+            controller: kiwoom.Controller,
+            controller_lock: threading.Lock,
+            queue_controller: receiver.QueueController,
+            code_list: str
+    ):
         super().__init__()
         self.code_list = code_list.split(";")
 
-        self.controller = kiwoom.Controller()
-        self.controller_lock = threading.Lock()
+        self.controller = controller
+        self.controller_lock = controller_lock
 
-        self.queue_controller = receiver.QueueController()
+        self.queue_controller = queue_controller
 
         self.tx_thread = receiver.TxEventReceiver(
             self.controller,
@@ -103,27 +109,23 @@ class Trader(threading.Thread):
     def __init__(
             self,
             controller: kiwoom.Controller,
+            controller_lock: threading.Lock,
             queue_controller: receiver.QueueController,
             stock_code: str,
-            qty: str,
-            price: int,
-            trade_type: str
     ):
         super().__init__()
         self.trade_object = kiwoom.Trade(
             controller,
+            controller_lock,
             queue_controller,
             stock_code,
-            qty,
-            price
         )
 
-        self._trade_type = trade_type
         self.define_trade_object()
 
     def define_trade_object(self):
         self.trade_object.price_code_object.set_market()
-        if self._trade_type == "buy":
+        if CONFIG["kiwoom"]["trade-type"] == "buy":
             self.trade_object.order_code_object.set_buy()
         else:
             self.trade_object.order_code_object.set_sell()
@@ -140,6 +142,8 @@ class Trader(threading.Thread):
             if signal is None:
                 continue
 
+            if DEBUG:
+                print(f"#### signal received, from Trade, {signal=}")
             self.trade_object.execute()
 
 
@@ -157,11 +161,29 @@ def delete_kiwoom_data():
 if __name__ == '__main__':
     from PyQt5.QtWidgets import QApplication
     app = QApplication([])
+
+    ctrl = kiwoom.Controller()
+    ctrl_lock = threading.Lock()
+
+    queue_ctrl = receiver.QueueController()
+
     sd = Sender(
-        "005930;066570"
+        ctrl,
+        ctrl_lock,
+        queue_ctrl,
+        CONFIG["stock"]["codes"],
     )
 
     atexit.register(delete_kiwoom_data)
 
     sd.start()
+
+    td = Trader(
+        ctrl,
+        ctrl_lock,
+        queue_ctrl,
+        CONFIG["stock"]["codes"],
+
+    )
+
     app.exec_()

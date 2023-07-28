@@ -1,5 +1,6 @@
 from StockApis.Kiwoom.consts import RequestHeader, TxCode
 from StockApis.Kiwoom import receiver
+from utils import CONFIG, DEBUG
 from PyQt5.QAxContainer import QAxObject, QAxWidget
 
 import re
@@ -225,16 +226,14 @@ class Trade:
             controller_lock: threading.Lock,
             queue_controller: receiver.QueueController,
             stock_code: str,
-            qty: str,
-            price: int,
     ):
         self.__str = RequestHeader.Trade
         self._controller = controller
         self._controller_lock = controller_lock
         self._queue_object = queue_controller
         self._stock_code = stock_code
-        self._qty = qty
-        self._price = price
+        self._qty = None
+        self._price = None
 
         self.order_code_object = SetOrderCode()
         self.price_code_object = SetPriceCode()
@@ -269,6 +268,12 @@ class Trade:
     def set_screen_number(self, number):
         self._screen_number = number
 
+    def set_trade_price(self, price):
+        self._price = price
+
+    def set_quantity(self):
+        self._qty = CONFIG["kiwoom"]["approximately-total-price"] // self._price
+
     def execute(self):
         if not self._validate_check:
             raise "validate check가 우선되어야 합니다."
@@ -276,6 +281,15 @@ class Trade:
         if not self._request_name:
             self.set_request_name()
             self._queue_object.add(self._request_name)
+
+        if self._price is None:
+            raise "price 값이 설정되어야 합니다."
+
+        if self._qty is None:
+            raise "quantity 값이 설정되어야 합니다."
+
+        if self.price_code_object.trading_code == "03":
+            self._price = 0
 
         order_parameters = [
             self._request_name,
