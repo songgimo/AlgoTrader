@@ -212,13 +212,20 @@ class RealTxEventReceiver(threading.Thread):
             return
 
         if real_type in ["주식시세", "주식체결", "주식예상체결"]:
-            real_data = abs(int(real_data.split("\t")[1]))
+            close = abs(int(real_data[1]))
+            open_ = abs(int(real_data[9]))
+            high = abs(int(real_data[10]))
+            low = abs(int(real_data[11]))
+
             if stock_code not in self.current_price_dict:
-                self.current_price_dict[stock_code] = [real_data]
+                self.current_price_dict[stock_code]["close"] = [close]
             else:
                 if len(self.current_price_dict[stock_code]) > 100:
                     self.current_price_dict[stock_code] = self.current_price_dict[stock_code][1:]
-                self.current_price_dict[stock_code].append(real_data)
+                self.current_price_dict[stock_code]["close"].append(real_data)
+                self.current_price_dict[stock_code]["open"] = open_
+                self.current_price_dict[stock_code]["high"] = high
+                self.current_price_dict[stock_code]["low"] = low
             REDIS_SERVER.set(RealReg.CurrentPrice, self.current_price_dict)
 
         elif real_type == "주식호가잔량":
