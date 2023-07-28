@@ -2,6 +2,7 @@ import redis
 import json
 import configparser
 import sys
+import os
 from decimal import Decimal, getcontext, InvalidOperation
 
 
@@ -93,5 +94,7 @@ class DecimalDecoder(json.JSONDecoder):
 
 REDIS_SERVER = RedisController()
 
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG = configparser.ConfigParser()
-CONFIG.read('./settings.ini')
+CONFIG.read(ROOT_DIR + "/" + "settings.ini")
+
