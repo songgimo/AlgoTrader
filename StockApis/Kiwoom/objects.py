@@ -1,4 +1,25 @@
 from PyQt5.QAxContainer import QAxWidget
+import queue
+
+
+class QueueController:
+    def __init__(self):
+        self.queue_dict = dict()
+
+    def add(self, key: str):
+        self.queue_dict[key] = queue.Queue()
+
+    def remove(self, key: str):
+        del self.queue_dict[key]
+
+    def get(self, key: str):
+        return self.queue_dict[key]
+
+    def put_data(self, key: str, val: str):
+        self.queue_dict[key].put(val)
+
+    def get_all_keys(self):
+        return self.queue_dict.keys()
 
 
 class Controller:

@@ -64,7 +64,7 @@ class Trade:
             self,
             controller: objects.Controller,
             controller_lock: threading.Lock,
-            queue_controller: receiver.QueueController,
+            queue_controller: objects.QueueController,
             stock_code: str,
     ):
         self.__str = RequestHeader.Trade
@@ -180,7 +180,12 @@ class Price:
     """
         하나의 Price Object는 하나의 stock_code를 담당한다.
     """
-    def __init__(self, controller, queue_object, stock_code):
+    def __init__(
+            self,
+            controller: objects.Controller,
+            queue_object: objects.QueueController,
+            stock_code
+    ):
         self.__str = RequestHeader.Price
         self._controller = controller
         self._queue_object = queue_object
@@ -202,13 +207,13 @@ class Price:
 
         self._controller.set_values('종목코드', self._stock_code)
         self._queue_object.add(self._request_name)
-        self._controller.request_common_data(self._request_name, TxCode.Get.StockInfo, screen_number)
+        self._controller.request_common_data(self._request_name, TxCode.Get.DailyCandle, screen_number)
 
         stock_queue = self._queue_object.get(self._request_name)
-        raw_price = stock_queue.get(True, timeout=10)
-        price = int(re.sub(r'[^\d]', '', raw_price))
+        data = stock_queue.get(True, timeout=10)
+        print(data)
 
-        return price
+        return data
 
     def get_current_price(self):
         return self.get_stock_information(item_name='현재가')

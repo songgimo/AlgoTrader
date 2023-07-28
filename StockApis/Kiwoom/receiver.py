@@ -7,26 +7,6 @@ import queue
 from StockApis.Kiwoom import objects
 
 
-class QueueController:
-    def __init__(self):
-        self.queue_dict = dict()
-
-    def add(self, key: str):
-        self.queue_dict[key] = queue.Queue()
-
-    def remove(self, key: str):
-        del self.queue_dict[key]
-
-    def get(self, key: str):
-        return self.queue_dict[key]
-
-    def put_data(self, key: str, val: str):
-        self.queue_dict[key].put(val)
-
-    def get_all_keys(self):
-        return self.queue_dict.keys()
-
-
 class RealRegBlock:
     """
         RealReg의 등록 및 삭제를 원활하게 하기 위한 Object
@@ -125,7 +105,7 @@ class TxEventReceiver(threading.Thread):
             self,
             controller: objects.Controller,
             controller_lock: threading.Lock,
-            queue_object: QueueController
+            queue_object: objects.QueueController
     ):
         super().__init__()
         self._controller = controller
@@ -250,7 +230,7 @@ class RealTxEventReceiver(threading.Thread):
 
 
 class OnEventReceiver(threading.Thread):
-    def __init__(self, queue_controller: QueueController):
+    def __init__(self, queue_controller: objects.QueueController):
         super().__init__()
         self.daemon = True
         self._queue_controller = queue_controller

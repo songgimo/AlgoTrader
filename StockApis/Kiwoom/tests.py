@@ -30,13 +30,13 @@ def sender_test():
     ctrl = objects.Controller()
     ctrl_lock = threading.Lock()
 
-    queue_ctrl = receiver.QueueController()
+    queue_ctrl = objects.QueueController()
 
     sd = Sender(
         ctrl,
         ctrl_lock,
         queue_ctrl,
-        CONFIG["stock"]["codes"],
+        CONFIG["kiwoom"]["codes"],
     )
 
     sd.start()
@@ -45,7 +45,7 @@ def sender_test():
         ctrl,
         ctrl_lock,
         queue_ctrl,
-        CONFIG["stock"]["codes"],
+        CONFIG["kiwoom"]["codes"],
     )
 
     app.exec_()

@@ -18,7 +18,7 @@ class Sender(threading.Thread):
             self,
             controller: objects.Controller,
             controller_lock: threading.Lock,
-            queue_controller: receiver.QueueController,
+            queue_controller: objects.QueueController,
             code_list: str
     ):
         super().__init__()
@@ -28,6 +28,8 @@ class Sender(threading.Thread):
         self.controller_lock = controller_lock
 
         self.queue_controller = queue_controller
+
+        self.event = threading.Event()
 
         self.tx_thread = receiver.TxEventReceiver(
             self.controller,
@@ -77,10 +79,11 @@ class Sender(threading.Thread):
             time.sleep(1)
         print("로그인 완료.")
 
-        self.real_current_price_setter()
+        # self.real_current_price_setter()
+        kiwoom.Price(
 
-        while True:
-            time.sleep(1)
+        )
+        self.event.wait()
 
     def real_current_price_setter(self):
         self.real_current_price_block = receiver.RealRegBlock(
@@ -110,7 +113,7 @@ class Trader(threading.Thread):
             self,
             controller: objects.Controller,
             controller_lock: threading.Lock,
-            queue_controller: receiver.QueueController,
+            queue_controller: objects.QueueController,
             stock_code: str,
     ):
         super().__init__()
@@ -165,13 +168,13 @@ if __name__ == '__main__':
     ctrl = objects.Controller()
     ctrl_lock = threading.Lock()
 
-    queue_ctrl = receiver.QueueController()
+    queue_ctrl = objects.QueueController()
 
     sd = Sender(
         ctrl,
         ctrl_lock,
         queue_ctrl,
-        CONFIG["stock"]["codes"],
+        CONFIG["kiwoom"]["codes"],
     )
 
     atexit.register(delete_kiwoom_data)
@@ -182,7 +185,7 @@ if __name__ == '__main__':
         ctrl,
         ctrl_lock,
         queue_ctrl,
-        CONFIG["stock"]["codes"],
+        CONFIG["kiwoom"]["codes"],
 
     )
 
