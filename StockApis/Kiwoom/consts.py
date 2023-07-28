@@ -22,18 +22,6 @@ class RealReg:
     Orderbook = "orderbook"
 
 
-class TradingCode:
-    Buy = (1, "buy")
-    Sell = (2, "sell")
-    CancelBuy = (3, "cancelbuy")
-    CancelSell = (4, "cancelsell")
-    ChangeBuy = (5, "changebuy")
-    ChangeSell = (6, "changesell")
-
-    LimitPrice = ("00", "limit")
-    MarketPrice = ("03", "market")
-
-
 class SetRealRegit:
     """
         이벤트 통신을 위한 실시간 체결 관련 코드

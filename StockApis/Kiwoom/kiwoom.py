@@ -1,4 +1,4 @@
-from StockApis.Kiwoom.consts import TradingCode, RequestHeader, TxCode
+from StockApis.Kiwoom.consts import RequestHeader, TxCode
 from StockApis.Kiwoom import receiver
 from PyQt5.QAxContainer import QAxObject, QAxWidget
 
@@ -185,10 +185,10 @@ class SetPriceCode:
         self.trading_str = ""
 
     def set_limit(self):
-        self.trading_code, self.trading_str = TradingCode.LimitPrice
+        self.trading_code, self.trading_str = ("00", "limit")
 
     def set_market(self):
-        self.trading_code, self.trading_str = TradingCode.MarketPrice
+        self.trading_code, self.trading_str = ("03", "market")
 
 
 class SetOrderCode:
@@ -197,22 +197,22 @@ class SetOrderCode:
         self.order_str = ""
 
     def set_buy(self):
-        self.order_code, self.order_str = TradingCode.Buy
+        self.order_code, self.order_str = (1, "buy")
 
     def set_sell(self):
-        self.order_code, self.order_str = TradingCode.Sell
+        self.order_code, self.order_str = (2, "sell")
 
     def set_cancel_buy(self):
-        self.order_code, self.order_str = TradingCode.CancelBuy
+        self.order_code, self.order_str = (3, "cancelbuy")
 
     def set_cancel_sell(self):
-        self.order_code, self.order_str = TradingCode.CancelSell
+        self.order_code, self.order_str = (4, "cancelsell")
 
     def set_change_buy(self):
-        self.order_code, self.order_str = TradingCode.ChangeBuy
+        self.order_code, self.order_str = (5, "changebuy")
 
     def set_change_sell(self):
-        self.order_code, self.order_str = TradingCode.ChangeSell
+        self.order_code, self.order_str = (6, "changesell")
 
 
 class Trade:
