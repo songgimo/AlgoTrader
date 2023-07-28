@@ -152,14 +152,19 @@ class TxEventReceiver(threading.Thread):
             transaction_code: int,
             recode_name: str
     ):
-        identifier, stock_codes, item_name = request_name.split('_')
-        if item_name == "대량종목명":
-            dict_ = dict()
-            code_list = stock_codes.split(';')
+        identifier, stock_code, item_name = request_name.split('_')
+        if item_name == "stock-history":
+            result = []
             for i in range(self._controller.get_repeat_count(transaction_code, request_name)):
-                res = self._controller.get_common_data_with_repeat(transaction_code, request_name, i, '종목명')
-                dict_.update({code_list[i]: res})
-            return dict_
+                list_ = [
+                    self._controller.get_common_data_with_repeat(transaction_code, request_name, i, '날짜').strip(),
+                    self._controller.get_common_data_with_repeat(transaction_code, request_name, i, '시가').strip(),
+                    self._controller.get_common_data_with_repeat(transaction_code, request_name, i, '저가').strip(),
+                    self._controller.get_common_data_with_repeat(transaction_code, request_name, i, '종가').strip()
+                ]
+                result.append(list_)
+
+            return {stock_code: result}
 
         return self._controller.get_common_data(transaction_code, recode_name, Etc.NoRepeat, item_name)
 

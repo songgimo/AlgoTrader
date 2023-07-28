@@ -131,10 +131,10 @@ class Controller:
 
     def request_common_data(
             self,
-            request_name,
-            transaction_code,
-            repeat,
-            screen_number
+            request_name: str,
+            transaction_code: str,
+            repeat: int,
+            screen_number: str
     ):
         wrap = [
             request_name,

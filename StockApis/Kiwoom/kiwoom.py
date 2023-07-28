@@ -1,4 +1,4 @@
-from StockApis.Kiwoom.consts import RequestHeader, TxCode
+from StockApis.Kiwoom.consts import RequestHeader, TxCode, Etc
 from StockApis.Kiwoom import receiver, objects
 from utils import CONFIG, DEBUG
 
@@ -183,11 +183,13 @@ class Price:
     def __init__(
             self,
             controller: objects.Controller,
+            controller_lock: threading.Lock,
             queue_object: objects.QueueController,
             stock_code
     ):
         self.__str = RequestHeader.Price
         self._controller = controller
+        self._controller_lock = controller_lock
         self._queue_object = queue_object
         self._stock_code = stock_code
 
@@ -200,6 +202,21 @@ class Price:
             item_name
         ])
 
+    def get_stock_history(self, item_name):
+        screen_number = self._stock_code[:4]
+
+        self.set_request_name(item_name)
+        with self._controller_lock:
+            self._controller.set_values('종목코드', self._stock_code)
+            self._queue_object.add(self._request_name)
+            self._controller.request_common_data(self._request_name, TxCode.Get.DailyCandle, Etc.NoRepeat, screen_number)
+
+        stock_queue = self._queue_object.get(self._request_name)
+        data = stock_queue.get(True, timeout=10)
+        print(data)
+
+        return data
+
     def get_stock_information(self, item_name):
         screen_number = self._stock_code
 
@@ -207,7 +224,7 @@ class Price:
 
         self._controller.set_values('종목코드', self._stock_code)
         self._queue_object.add(self._request_name)
-        self._controller.request_common_data(self._request_name, TxCode.Get.DailyCandle, screen_number)
+        self._controller.request_common_data(self._request_name, TxCode.Get.CurrentPrice, Etc.NoRepeat, screen_number)
 
         stock_queue = self._queue_object.get(self._request_name)
         data = stock_queue.get(True, timeout=10)
@@ -224,4 +241,5 @@ class Price:
     def get_opening_price(self):
         return self.get_stock_information(item_name='시가')
 
-
+    def get_stock_history_data(self):
+        return self.get_stock_history(item_name="stock-history")

@@ -80,9 +80,14 @@ class Sender(threading.Thread):
         print("로그인 완료.")
 
         # self.real_current_price_setter()
-        kiwoom.Price(
-
-        )
+        for code in self.code_list:
+            price_object = kiwoom.Price(
+                self.controller,
+                self.controller_lock,
+                self.queue_controller,
+                code
+            )
+            price_object.get_stock_history_data()
         self.event.wait()
 
     def real_current_price_setter(self):
