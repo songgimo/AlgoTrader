@@ -8,6 +8,11 @@ from AlgoTrader import consts as algo_consts
 from StockApis.Kiwoom import consts as kiwoom_consts
 from objects import CandleContainer
 
+"""
+당일의 ticker 지표를 모두 받는다
+이를 바탕으로 주식 지표를 계산한다.
+"""
+
 
 class IndicatorNode:
     """
@@ -103,7 +108,13 @@ class StockRefresher(threading.Thread):
                     continue
 
                 container = self._thread_dict[stock_code]["container"]
-                price_data = current_price_dict[stock_code]
+                close = current_price_dict[stock_code]["close"]
 
-                container.close = price_data
+                open_ = current_price_dict[stock_code]["open"]
+                high = current_price_dict[stock_code]["high"]
+                low = current_price_dict[stock_code]["low"]
 
+                container.close = close
+                container.high = high
+                container.low = low
+                container.open_ = open_
