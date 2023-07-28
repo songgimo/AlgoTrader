@@ -4,8 +4,7 @@ from utils import REDIS_SERVER
 import threading
 import queue
 
-import kiwoom
-import time
+from StockApis.Kiwoom import objects
 
 
 class QueueController:
@@ -34,7 +33,7 @@ class RealRegBlock:
     """
     def __init__(
             self,
-            controller: kiwoom.Controller,
+            controller: objects.Controller,
             controller_lock: threading.Lock,
     ):
         self.block = dict()
@@ -46,10 +45,15 @@ class RealRegBlock:
         self.fid_code = None
         self.screen_number = ""
 
-    def define_to_current_price_block(self):
+    def define_to_stock_price_block(self):
+        close = "10"
+        open_ = "16"
+        high = "17"
+        low = "18"
+
         if self.real_reg_type is None:
             self.real_reg_type = RealReg.CurrentPrice
-            self.fid_code = "10"
+            self.fid_code = ";".join([close, open_, high, low])
             self.screen_number = "1001"
 
     def define_to_orderbook_block(self):
@@ -119,7 +123,7 @@ class TxEventReceiver(threading.Thread):
     """
     def __init__(
             self,
-            controller: kiwoom.Controller,
+            controller: objects.Controller,
             controller_lock: threading.Lock,
             queue_object: QueueController
     ):

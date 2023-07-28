@@ -1,5 +1,11 @@
 from PyQt5.QtWidgets import QApplication
-from StockApis.Kiwoom.runner import Sender
+from utils import CONFIG
+from StockApis.Kiwoom.runner import Sender, Trader
+from StockApis.Kiwoom import receiver, objects
+
+import threading
+
+
 """
 test 확인된 목록
     1. kiwoom api 연동 확인
@@ -17,13 +23,31 @@ test 확인된 목록
 
 """
 
+
 def sender_test():
     app = QApplication([])
+
+    ctrl = objects.Controller()
+    ctrl_lock = threading.Lock()
+
+    queue_ctrl = receiver.QueueController()
+
     sd = Sender(
-        "005930;066570"
+        ctrl,
+        ctrl_lock,
+        queue_ctrl,
+        CONFIG["stock"]["codes"],
     )
 
     sd.start()
+
+    td = Trader(
+        ctrl,
+        ctrl_lock,
+        queue_ctrl,
+        CONFIG["stock"]["codes"],
+    )
+
     app.exec_()
 
 

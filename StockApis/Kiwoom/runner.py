@@ -2,7 +2,7 @@ import threading
 import time
 import atexit
 
-from StockApis.Kiwoom import kiwoom, receiver, consts
+from StockApis.Kiwoom import kiwoom, receiver, consts, objects
 from utils import REDIS_SERVER, CONFIG, DEBUG
 
 
@@ -16,7 +16,7 @@ class Sender(threading.Thread):
     """
     def __init__(
             self,
-            controller: kiwoom.Controller,
+            controller: objects.Controller,
             controller_lock: threading.Lock,
             queue_controller: receiver.QueueController,
             code_list: str
@@ -88,7 +88,7 @@ class Sender(threading.Thread):
             self.controller_lock,
         )
 
-        self.real_current_price_block.define_to_current_price_block()
+        self.real_current_price_block.define_to_stock_price_block()
         self.real_current_price_block.init_block_list(
             self.code_list
         )
@@ -108,7 +108,7 @@ class Sender(threading.Thread):
 class Trader(threading.Thread):
     def __init__(
             self,
-            controller: kiwoom.Controller,
+            controller: objects.Controller,
             controller_lock: threading.Lock,
             queue_controller: receiver.QueueController,
             stock_code: str,
@@ -144,7 +144,7 @@ class Trader(threading.Thread):
 
             if DEBUG:
                 print(f"#### signal received, from Trade, {signal=}")
-            self.trade_object.execute()
+            # self.trade_object.execute()
 
 
 def delete_kiwoom_data():
@@ -162,7 +162,7 @@ if __name__ == '__main__':
     from PyQt5.QtWidgets import QApplication
     app = QApplication([])
 
-    ctrl = kiwoom.Controller()
+    ctrl = objects.Controller()
     ctrl_lock = threading.Lock()
 
     queue_ctrl = receiver.QueueController()

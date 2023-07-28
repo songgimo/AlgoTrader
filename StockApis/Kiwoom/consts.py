@@ -22,17 +22,6 @@ class RealReg:
     Orderbook = "orderbook"
 
 
-class SetRealRegit:
-    """
-        이벤트 통신을 위한 실시간 체결 관련 코드
-    """
-    OnlyLastRegit = "0"
-    AddRegit = "1"
-    CurrentPrice = "10"
-    FilledDate = "20"
-    TradeAmount = "15"
-
-
 class RequestHeader:
     Trade = "trade"
     Price = "price"
