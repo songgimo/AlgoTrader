@@ -1,3 +1,8 @@
+# 지표와 인수를 정의하고 실행하는 파일.
+# 관련 스레드를 실행한다.
+# author: gimo
+# date: 2023/07/30
+
 from calculators import Stock, StockRefresher
 from objects import CandleContainer
 
