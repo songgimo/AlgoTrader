@@ -5,6 +5,7 @@
 
 
 import re
+import datetime
 
 
 class CandleContainer:
@@ -18,9 +19,26 @@ class CandleContainer:
         self.symbol = symbol
 
         self.candle = []
-        self.close = []
-        self.high = []
-        self.low = []
+        self.close = 0
+        self.high = 0
+        self.low = 0
+
+        self.history_data = []
+
+        self.history_datetime = []
+        self.history_open = []
+        self.history_close = []
+        self.history_high = []
+        self.history_low = []
+
+    def place_history_date_ohlc(self):
+        for each in self.history_data:
+            date_, open_, low, high, close = each
+            self.history_datetime.append(datetime.datetime.strptime(date_, "%Y%m%d"))
+            self.history_open.append(int(open_))
+            self.history_low.append(int(low))
+            self.history_high.append(int(high))
+            self.history_close.append(abs(int(close)))
 
     def set_candle(self, value):
         self.candle = value
