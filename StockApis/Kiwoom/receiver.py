@@ -160,6 +160,7 @@ class TxEventReceiver(threading.Thread):
                     self._controller.get_common_data_with_repeat(transaction_code, request_name, i, '날짜').strip(),
                     self._controller.get_common_data_with_repeat(transaction_code, request_name, i, '시가').strip(),
                     self._controller.get_common_data_with_repeat(transaction_code, request_name, i, '저가').strip(),
+                    self._controller.get_common_data_with_repeat(transaction_code, request_name, i, '고가').strip(),
                     self._controller.get_common_data_with_repeat(transaction_code, request_name, i, '종가').strip()
                 ]
                 result.append(list_)
