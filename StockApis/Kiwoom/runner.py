@@ -80,6 +80,7 @@ class Sender(threading.Thread):
         print("로그인 완료.")
 
         # self.real_current_price_setter()
+        history_data = dict()
         for code in self.code_list:
             price_object = kiwoom.Price(
                 self.controller,
@@ -87,7 +88,10 @@ class Sender(threading.Thread):
                 self.queue_controller,
                 code
             )
-            price_object.get_stock_history_data()
+            result = price_object.get_stock_history_data()
+            history_data.update(result)
+
+        REDIS_SERVER.set(consts.RequestHeader.Price, history_data)
         self.event.wait()
 
     def real_current_price_setter(self):
