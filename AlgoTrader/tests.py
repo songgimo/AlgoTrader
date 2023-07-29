@@ -1,5 +1,3 @@
-
-
 from AlgoTrader.calculators import (
     StockRefresher,
     Stock
@@ -10,39 +8,50 @@ from AlgoTrader.indicators import IndicatorNode
 from objects import CandleContainer
 
 import threading
-import inspect
 import time
 
+import unittest
 
-class TClass:
+
+class TestIndicators:
     """
         golden cross:
     """
-    def __init__(self, candle_container):
-        """
-            candle spec
-                GC: [candle_size, short_period, long_period, method]
-                BB: [candle_size, period, deviation, line, method]
-                RSI: [candle_size, period, bound, method]
 
-                Stochastic: [candle_size, period, period_m, period_t, reference, method]
-                    - reference: fastK, fastD, slowK, slowD
-                CCI: [candle_size, period, bound, method]
+    def __init__(self):
+        test_orderbook = {
+            '005930': [69900, 70000, 70000, 69900, 70000, 70000, 70000, 69900, 69900, 69900, 70000, 70000, 70000, 70000,
+                       70000, 70000, 69900, 69900, 70000, 70000, 69900, 70000, 70000, 70000, 70000, 70000, 69900, 69900,
+                       70000, 69900, 70000, 70000, 69900, 69900, 70000, 70000, 70000, 70000, 69900, 69900, 69900, 70000,
+                       69900, 69900, 70000, 69900, 70000, 70000, 70000, 69900, 70000, 70000, 70000, 69900, 70000, 69900,
+                       70000, 69900, 69900, 69900, 69900, 69900, 70000, 70000, 70000, 70000, 70000, 69900, 69900, 69900,
+                       69900, 70000, 69900, 70000, 70000, 69900, 69900, 69900, 69900, 70000, 70000, 69900, 69900, 69900,
+                       69900, 69900, 69900, 69900, 70000, 70000, 70000, 69900, 69900, 70000, 69900, 70000, 70000, 70000,
+                       70000, 70000, 70000],
+        }
+        self._mock_history = {
+            '005930': [
+                ['20230728', '71800', '70100', '72400', '-70600'],
+                ['20230727', '69900', '69300', '71700', '+71700'],
+                ['20230726', '69800', '68100', '70600', '-69800'],
+                ['20230725', '70000', '69800', '70500', '-70000'],
+                ['20230724', '70100', '69900', '70900', '+70400'],
+                ['20230721', '70400', '69400', '70400', '-70300'],
+                ['20230720', '71100', '70800', '71500', '-71000'],
+                ['20230719', '72700', '71300', '72800', '-71700']
+            ]
+        }
 
-        """
-        self.candle_container = candle_container
+        self.candle_container = CandleContainer("005930")
         self.lock = threading.Lock()
 
-        self.lt = "Stochastic[1, 14, 50, fastK, bound_lower]"
-        self.rt = "GoldenCross[1, 14, 50, bound_upper]"
-        self.op = "and"
+        self.candle_container.history_data = self._mock_history["005930"]
+        self.candle_container.place_history_date_ohlc()
 
-    def total_test_in_indicators(self):
-        for name, func in inspect.getmembers(self):
-            if name.startswith("test"):
-                print(f"start_function, {name}")
-                result = func()
-                print(result)
+        self.candle_container.high = 70000
+        self.candle_container.low = 68900
+        self.candle_container.close = 70500
+        self.candle_container.open = 70000
 
     def test_golden_cross(self):
         """
@@ -182,18 +191,44 @@ class TStockRefresher:
             time.sleep(1)
 
 
-if __name__ == '__main__':
-    def t_calculate():
-        test_orderbook = {
-            '005930': [69900, 70000, 70000, 69900, 70000, 70000, 70000, 69900, 69900, 69900, 70000, 70000, 70000, 70000, 70000, 70000, 69900, 69900, 70000, 70000, 69900, 70000, 70000, 70000, 70000, 70000, 69900, 69900, 70000, 69900, 70000, 70000, 69900, 69900, 70000, 70000, 70000, 70000, 69900, 69900, 69900, 70000, 69900, 69900, 70000, 69900, 70000, 70000, 70000, 69900, 70000, 70000, 70000, 69900, 70000, 69900, 70000, 69900, 69900, 69900, 69900, 69900, 70000, 70000, 70000, 70000, 70000, 69900, 69900, 69900, 69900, 70000, 69900, 70000, 70000, 69900, 69900, 69900, 69900, 70000, 70000, 69900, 69900, 69900, 69900, 69900, 69900, 69900, 70000, 70000, 70000, 69900, 69900, 70000, 69900, 70000, 70000, 70000, 70000, 70000, 70000],
-            '066570': [120700, 120700, 120700, 120700, 120700, 120600, 120700, 120600, 120700, 120600, 120700, 120700, 120600, 120600, 120600, 120600, 120600, 120700, 120700, 120600, 120600, 120700, 120700, 120600, 120700, 120600, 120600, 120700, 120600, 120700, 120600, 120600, 120700, 120600, 120600, 120700, 120700, 120700, 120700, 120700, 120700, 120700, 120600, 120700, 120600, 120700, 120700, 120700, 120700, 120700, 120700, 120700, 120700, 120700, 120600, 120700, 120600, 120600, 120600, 120700, 120700, 120700, 120700, 120700, 120600, 120600, 120700, 120700, 120700, 120700, 120700, 120700, 120700, 120700, 120600, 120600, 120600, 120700, 120700, 120700, 120700, 120700, 120600, 120700, 120600, 120600, 120600, 120700]
+class TestHistoryPlace(unittest.TestCase):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._mock_history = {
+            '005930': [
+                ['20230728', '71800', '70100', '72400', '-70600'],
+                ['20230727', '69900', '69300', '71700', '+71700'],
+                ['20230726', '69800', '68100', '70600', '-69800'],
+                ['20230725', '70000', '69800', '70500', '-70000'],
+                ['20230724', '70100', '69900', '70900', '+70400'],
+                ['20230721', '70400', '69400', '70400', '-70300'],
+                ['20230720', '71100', '70800', '71500', '-71000'],
+                ['20230719', '72700', '71300', '72800', '-71700']
+            ]
         }
-        cd = CandleContainer("005930")
-        cd.set_candle(test_orderbook["005930"])
-        cd.set_close(test_orderbook["005930"])
-        tc = TClass(cd)
-        tc.test_cci()
+        self._list_empty = []
+        self._candle_container = CandleContainer("005930")
+        self._candle_container.history_data = self._mock_history["005930"]
+        self._candle_container.place_history_date_ohlc()
 
+    def test_open_price_inserted(self):
+        print(f"{self._candle_container.history_open=}")
+        self.assertNotEqual(self._candle_container.history_open, self._list_empty)
+
+    def test_high_price_inserted(self):
+        print(f"{self._candle_container.history_high=}")
+        self.assertNotEqual(self._list_empty, self._candle_container.history_high)
+
+    def test_low_price_inserted(self):
+        print(f"{self._candle_container.history_low=}")
+        self.assertNotEqual(self._list_empty, self._candle_container.history_low)
+
+    def test_close_price_inserted(self):
+        print(f"{self._candle_container.history_close=}")
+        self.assertNotEqual(self._list_empty, self._candle_container.history_close)
+
+
+if __name__ == '__main__':
     def t_stock_refresh():
         lt = "Stochastic[1, 14, 3, 3, 50, fastK, bound_lower]"
         rt = "CCI[1, 14, 50, 3, bound_upper]"
@@ -213,4 +248,4 @@ if __name__ == '__main__':
         rt = TStockRefresher(thread_dict)
         rt.run_refresher()
 
-    t_stock_refresh()
+    unittest.main()
