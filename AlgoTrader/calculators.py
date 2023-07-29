@@ -1,60 +1,23 @@
+# 1. Object들에 대한 계산과 관련된 Thread 집합
+# 2. 외부 Process/API와 상호작용을 하는 Thread 집합
+# author: gimo
+# date: 2023/07/30
+
 import operator
 import threading
 import indicators
 import time
 
 from utils import REDIS_SERVER, DEBUG
-from AlgoTrader import consts as algo_consts
 from StockApis.Kiwoom import consts as kiwoom_consts
 from objects import CandleContainer
-
-"""
-당일의 ticker 지표를 모두 받는다
-이를 바탕으로 주식 지표를 계산한다.
-"""
-
-
-class IndicatorNode:
-    """
-        최초 Stock Thread로부터 불러와지고 핸들링된다.
-        유저로부터 입력된 보조지표 string값과 parameter를 입력받고 가공한다.
-        이후 지표 Object를 가져오고 Stock Thread로 리턴되며, 조작된다.
-    """
-    def __init__(
-            self,
-            candle_container: CandleContainer,
-            candle_lock: threading.Lock,
-            val: str
-    ):
-        self._candle_container = candle_container
-        self._candle_lock = candle_lock
-
-        self.indicator_class = self.convert_string(val)
-
-    def convert_string(self, val: str):
-        class_dict = {
-            algo_consts.IndicatorName.GC: indicators.GoldenCross,
-            algo_consts.IndicatorName.BB: indicators.BollingerBand,
-            algo_consts.IndicatorName.RSI: indicators.RSI,
-            algo_consts.IndicatorName.MACD: indicators.MACD,
-            algo_consts.IndicatorName.STC: indicators.Stochastic,
-            algo_consts.IndicatorName.CCI: indicators.CCI
-        }
-        setting_object = indicators.Settings(val)
-        name = setting_object.algo_name
-
-        indicator_class = class_dict.get(name, None)
-
-        if indicator_class:
-            return indicator_class(self._candle_container, self._candle_lock, setting_object)
-
-        return None
 
 
 class Stock(threading.Thread):
     """
-        main process로부터 핸들링되는 Thread이며, 트레이딩할 거래 지표를 정의한다.
-        이후 지속적으로 N개의 인디케이터를 감시하고 트리거가 발동하는 경우 Kiwoom으로 거래 트리거를 보낸다.
+        Main Process로부터 실행되는 Thread.
+        runner.py로부터 정의받은 두 개의 지표와 관련 인수를 받고 일치 여부를 판단한다.
+        일치가 된다고 판단되면 Redis에 값을 포함한 거래 트리거를 세팅한다.
     """
     def __init__(
             self,
@@ -68,8 +31,8 @@ class Stock(threading.Thread):
         self._candle_container = container
         self._candle_lock = lock
 
-        self._left_indicator = IndicatorNode(self._candle_container, self._candle_lock, left)
-        self._right_indicator = IndicatorNode(self._candle_container, self._candle_lock, right)
+        self._left_indicator = indicators.IndicatorNode(self._candle_container, self._candle_lock, left)
+        self._right_indicator = indicators.IndicatorNode(self._candle_container, self._candle_lock, right)
 
         self._op = getattr(operator, f"{op}_")
 
@@ -93,6 +56,10 @@ class Stock(threading.Thread):
 
 
 class StockRefresher(threading.Thread):
+    """
+        Main Process로부터 실행되는 Thread.
+        runner.py로부터 정의된 thread_dict을 받고 적합한 data_container에 stock ohlc 값을 넣는다.
+    """
     def __init__(self, thread_dict: dict):
         super().__init__()
         self._thread_dict = thread_dict

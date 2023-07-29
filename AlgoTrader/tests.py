@@ -1,8 +1,9 @@
-from AlgoTrader.calc_module import (
-    IndicatorNode,
+from AlgoTrader.calculators import (
     StockRefresher,
     Stock
 )
+
+from AlgoTrader.indicators import IndicatorNode
 
 from objects import CandleContainer
 

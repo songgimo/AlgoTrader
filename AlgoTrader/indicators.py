@@ -1,17 +1,57 @@
-"""
-    각종 indicator 지표들의 집합 파일
-    각 indicator들의 상태는 어떤 exchange type이냐에 따라 변화한다.
+# 보조지표 계산과 관련된 object들의 집합
+# 무엇인가를 실행하는 클래스는 없으며, 외부로부터 호출되어 사용되는 형태의 object 집합이다.
+# author: gimo
+# date: 2023/07/30
 
-    현재로는 crypto-stock 두 개의 지표 거래만 지원한다.
-"""
+
 import numpy as np
 import threading
 
 from objects import CandleContainer, Settings
 from utils import DEBUG
+from AlgoTrader import consts as algo_consts
+
+
+class IndicatorNode:
+    """
+        하위 보조지표를 wrapping하여 외부에서 사용할 수 있게 하는 클래스
+        보조지표 클래스보다 상위에 위치하며, 외부와 통신한다.
+    """
+    def __init__(
+            self,
+            candle_container: CandleContainer,
+            candle_lock: threading.Lock,
+            val: str
+    ):
+        self._candle_container = candle_container
+        self._candle_lock = candle_lock
+
+        self.indicator_class = self.convert_string(val)
+
+    def convert_string(self, val: str):
+        class_dict = {
+            algo_consts.IndicatorName.GC: GoldenCross,
+            algo_consts.IndicatorName.BB: BollingerBand,
+            algo_consts.IndicatorName.RSI: RSI,
+            algo_consts.IndicatorName.MACD: MACD,
+            algo_consts.IndicatorName.STC: Stochastic,
+            algo_consts.IndicatorName.CCI: CCI
+        }
+        setting_object = Settings(val)
+        name = setting_object.algo_name
+
+        indicator_class = class_dict.get(name, None)
+
+        if indicator_class:
+            return indicator_class(self._candle_container, self._candle_lock, setting_object)
+
+        return None
 
 
 class BaseIndicator:
+    """
+        보조지표의 중복된 함수와 변수를 정의한 상속 클래스
+    """
     def __init__(
             self,
             candle_container: CandleContainer,
@@ -63,11 +103,6 @@ class BaseIndicator:
     
 
 class GoldenCross(BaseIndicator):
-    """
-        입력받은 close data를 기반으로 다음을 구한다.
-            1. 단기 이평선, 장기 이평선
-            2. 전 단기 이평선, 전 장기 이평선
-    """
     def __init__(
             self,
             *args

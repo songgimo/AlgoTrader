@@ -1,3 +1,5 @@
+# AlgoTrader 폴더에 사용되는 각종 상수를 선언한 집합
+
 
 class General(object):
     CRYPTO = "Crypto"

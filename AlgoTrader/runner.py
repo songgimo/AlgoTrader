@@ -1,4 +1,4 @@
-from calc_module import Stock, StockRefresher
+from calculators import Stock, StockRefresher
 from objects import CandleContainer
 
 import threading
