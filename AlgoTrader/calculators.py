@@ -66,10 +66,25 @@ class StockRefresher(threading.Thread):
 
     def run(self) -> None:
         while True:
+            stock_history_dict = REDIS_SERVER.get(kiwoom_consts.RequestHeader.Price)
+            if stock_history_dict is None:
+                time.sleep(0.1)
+                continue
+
+            for stock_code in stock_history_dict:
+                if stock_code not in self._thread_dict.keys():
+                    continue
+
+                container = self._thread_dict[stock_code]["container"]
+                container.place_history_date_ohlc()
+
+            break
+
+        while True:
             current_price_dict = REDIS_SERVER.get(kiwoom_consts.RealReg.CurrentPrice)
             if current_price_dict is None:
                 time.sleep(0.1)
-
+                continue
             for stock_code in current_price_dict:
                 if stock_code not in self._thread_dict.keys():
                     continue
@@ -85,3 +100,5 @@ class StockRefresher(threading.Thread):
                 container.high = high
                 container.low = low
                 container.open_ = open_
+
+            time.sleep(0.1)
