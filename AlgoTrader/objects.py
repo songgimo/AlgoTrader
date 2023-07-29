@@ -40,6 +40,12 @@ class CandleContainer:
             self.history_high.append(int(high))
             self.history_close.append(abs(int(close)))
 
+    def get_close_candles(self):
+        return [self.close] + self.history_close
+
+    def get_close_candles_without_today(self):
+        return self.history_close
+
     def set_candle(self, value):
         self.candle = value
 

@@ -123,13 +123,14 @@ class GoldenCross(BaseIndicator):
 
     def calculator(self) -> None:
         with self._container_lock:
-            close = self._candle_container.close
+            today_candles = self._candle_container.get_close_candles()
+            yesterday_candles = self._candle_container.get_close_candles_without_today()
 
-        short_close = close[:self._settings["short_period"]]
-        long_close = close[:self._settings["long_period"]]
+        short_close = today_candles[:self._settings["short_period"]]
+        long_close = today_candles[:self._settings["long_period"]]
 
-        prev_short_close = close[1:self._settings["short_period"] + 1]
-        prev_long_close = close[1:self._settings["long_period"] + 1]
+        prev_short_close = yesterday_candles[self._settings["short_period"]]
+        prev_long_close = yesterday_candles[self._settings["long_period"]]
 
         short_sma = self.get_sma(short_close)
         long_sma = self.get_sma(long_close)
@@ -206,12 +207,13 @@ class BollingerBand(BaseIndicator):
 
     def calculator(self) -> None:
         with self._container_lock:
-            candles = self._candle_container.close
+            today_candles = self._candle_container.get_close_candles()
+            yesterday_candles = self._candle_container.get_close_candles_without_today()
 
         period = self._settings["period"]
 
-        prev_dict = self.get_band_index(candles[1:period+1])
-        latest_dict = self.get_band_index(candles[:period])
+        prev_dict = self.get_band_index(yesterday_candles[:period])
+        latest_dict = self.get_band_index(today_candles[:period])
 
         self._data_set = {
             "prev": prev_dict,
@@ -244,24 +246,17 @@ class RSI(BaseIndicator):
 
     def calculator(self) -> None:
         with self._container_lock:
-            candles = self._candle_container.close
-        
+            today_candles = self._candle_container.get_close_candles()
+
         period = self._settings["period"]
         
-        differences = np.array(candles[1:]) - np.array(candles[:-1])
+        differences = np.array(today_candles[1:]) - np.array(today_candles[:-1])
 
         latest_differences = differences[:period]
         prev_differences = differences[1:period+1]
 
         prev_average_gain, prev_average_loss = self.get_average_gain_loss(prev_differences)
         latest_average_gain, latest_average_loss = self.get_average_gain_loss(latest_differences)
-
-        # for diff in differences[period:-1]:
-        #     prev_average_gain = ((prev_average_gain * (period - 1)) + (0 if diff < 0 else diff)) / period
-        #     prev_average_loss = ((prev_average_loss * (period - 1)) - (0 if diff > 0 else diff)) / period
-
-        # average_gain = ((prev_average_gain * (period - 1)) + (0 if differences[-1] < 0 else differences[-1])) / period
-        # average_loss = ((prev_average_loss * (period - 1)) - (0 if differences[-1] > 0 else differences[-1])) / period
 
         prev_rsi = self.get_rsi(prev_average_gain, prev_average_loss)
         rsi = self.get_rsi(latest_average_gain, latest_average_loss)
@@ -281,10 +276,10 @@ class MACD(BaseIndicator):
 
     def calculator(self) -> None:
         with self._container_lock:
-            candles = self._candle_container.close
+            today_candles = self._candle_container.get_close_candles()
 
-        short_ema_list = self.get_ema(candles, self._settings["short_period"])
-        long_ema_list = self.get_ema(candles, self._settings["long_period"])
+        short_ema_list = self.get_ema(today_candles, self._settings["short_period"])
+        long_ema_list = self.get_ema(today_candles, self._settings["long_period"])
 
         max_len = min(len(short_ema_list), len(long_ema_list))
 
@@ -340,19 +335,19 @@ class Stochastic(BaseIndicator):
 
     def calculator(self) -> None:
         with self._container_lock:
-            close = self._candle_container.close
+            today_candles = self._candle_container.get_close_candles()
 
         period = self._settings["period"]
         period_m = self._settings["period_m"]
         period_t = self._settings["period_t"]
 
-        close.reverse()
+        today_candles.reverse()
         k_list = []
         for n in range(period_m + period_t):
             # 0, 1, 2, 3, 4, 5
-            latest = close[n]
-            highest_by_period = np.max(close[n:period+n])
-            lowest_by_period = np.min(close[n:period+n])
+            latest = today_candles[n]
+            highest_by_period = np.max(today_candles[n:period+n])
+            lowest_by_period = np.min(today_candles[n:period+n])
 
             raw_data = (latest - lowest_by_period) / (highest_by_period - lowest_by_period)
 
@@ -395,14 +390,14 @@ class CCI(BaseIndicator):
 
     def calculator(self) -> None:
         with self._container_lock:
-            close = self._candle_container.close
+            today_candles = self._candle_container.get_close_candles()
 
         chart_range = self._settings["reference"]
         period = self._settings["period"]
 
         typical_price_list = []
-        for n in range(0, len(close)):
-            close_by_period = close[n:n+chart_range]
+        for n in range(0, len(today_candles)):
+            close_by_period = today_candles[n:n+chart_range]
 
             high, low = max(close_by_period), min(close_by_period)
             latest = close_by_period[0]
