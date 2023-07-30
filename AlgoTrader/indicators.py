@@ -232,8 +232,8 @@ class RSI(BaseIndicator):
         return "rsi"
 
     def get_average_gain_loss(self, differences):
-        gain = np.average(np.sum(differences[differences > 0]))
-        loss = np.average(np.sum(differences[differences < 0]))
+        gain = np.average(np.sum(differences[differences > 0])) / len(differences)
+        loss = np.average(np.sum(differences[differences < 0])) / len(differences)
 
         return gain, loss
 
@@ -250,7 +250,7 @@ class RSI(BaseIndicator):
 
         period = self._settings["period"]
         
-        differences = np.array(today_candles[1:]) - np.array(today_candles[:-1])
+        differences = np.array(today_candles[:-1]) - np.array(today_candles[1:])
 
         latest_differences = differences[:period]
         prev_differences = differences[1:period+1]
@@ -310,20 +310,6 @@ class MACD(BaseIndicator):
                 'prev': prev_macd_histogram,
                 'latest': latest_macd_histogram
             }
-
-    def get_ema(self, candles, period) -> list:
-        # 지수 이동 평균, [oldest, ... latest]
-        multipliers = (2 / (period + 1))
-
-        reversed_data = list(reversed(candles[:period]))
-
-        previous_ema = reversed_data[0]
-        ema_list = [previous_ema]
-        for candle in reversed_data[1:]:
-            previous_ema = (candle * multipliers) + (previous_ema * (1 - multipliers))
-            ema_list.append(previous_ema)
-
-        return ema_list
 
 
 class Stochastic(BaseIndicator):
