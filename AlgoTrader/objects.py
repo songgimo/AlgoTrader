@@ -7,6 +7,8 @@
 import re
 import datetime
 
+import numpy as np
+
 
 class CandleContainer:
     """
@@ -48,11 +50,25 @@ class CandleContainer:
         self.high = price_dict["high"]
         self.low = price_dict["low"]
 
+    def get_open_candles(self):
+        return np.array(self.history_open)
+        # return [self.open] + self.history_open
+
+    def get_high_candles(self):
+        return np.array(self.history_high)
+        # return [self.high] + self.history_high
+
+    def get_low_candles(self):
+        return np.array(self.history_low)
+        # return [self.low] + self.history_low
+
     def get_close_candles(self):
-        return [self.close] + self.history_close
+        return np.array(self.history_close)
+        # return [self.close] + self.history_close
 
     def get_close_candles_without_today(self):
-        return self.history_close
+        return self.history_close[1:-1]
+        # return self.history_close
 
 
 class Settings:

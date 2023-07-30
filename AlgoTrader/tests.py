@@ -13,6 +13,10 @@ import time
 import unittest
 
 
+"""
+BB, MACD, GC 확인 필요.
+"""
+
 class TestIndicators(unittest.TestCase):
     """
         golden cross:
@@ -177,7 +181,9 @@ class TestIndicators(unittest.TestCase):
             string_
         )
 
-        self.t_by_indicator_class(indi_node.indicator_class)
+        result = self.t_by_indicator_class(indi_node.indicator_class)
+
+        self.assertIn(result, self._boolean)
 
     def test_cci(self):
         """
@@ -196,7 +202,9 @@ class TestIndicators(unittest.TestCase):
             string_
         )
 
-        self.t_by_indicator_class(indi_node.indicator_class)
+        result = self.t_by_indicator_class(indi_node.indicator_class)
+
+        self.assertIn(result, self._boolean)
 
     def t_by_indicator_class(self, indi_class):
         indi_class.calculator()
