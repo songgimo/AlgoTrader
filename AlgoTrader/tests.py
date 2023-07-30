@@ -13,12 +13,12 @@ import time
 import unittest
 
 
-class TestIndicators:
+class TestIndicators(unittest.TestCase):
     """
         golden cross:
     """
-
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         test_orderbook = {
             '005930': [69900, 70000, 70000, 69900, 70000, 70000, 70000, 69900, 69900, 69900, 70000, 70000, 70000, 70000,
                        70000, 70000, 69900, 69900, 70000, 70000, 69900, 70000, 70000, 70000, 70000, 70000, 69900, 69900,
@@ -38,7 +38,29 @@ class TestIndicators:
                 ['20230724', '70100', '69900', '70900', '+70400'],
                 ['20230721', '70400', '69400', '70400', '-70300'],
                 ['20230720', '71100', '70800', '71500', '-71000'],
-                ['20230719', '72700', '71300', '72800', '-71700']
+                ['20230719', '72700', '71300', '72800', '-71700'],
+                ['20230718', '73200', '72000', '73500', '-72000'],
+                ['20230717', '73200', '72800', '73500', '-73300'],
+                ['20230714', '72500', '72400', '73400', '+73400'],
+                ['20230713', '72400', '71900', '72600', '71900'],
+                ['20230712', '71200', '71100', '72000', '+71900'],
+                ['20230711', '70200', '70100', '71500', '+71500'],
+                ['20230710', '70000', '69200', '70400', '-69500'],
+                ['20230707', '71100', '69800', '71400', '-69900'],
+                ['20230706', '71900', '71500', '72400', '-71600'],
+                ['20230705', '73000', '71900', '73300', '-72000'],
+                ['20230704', '73400', '72900', '73600', '73000'],
+                ['20230703', '72700', '72600', '73200', '+73000'],
+                ['20230630', '72500', '71700', '72700', '-72200'],
+                ['20230629', '73100', '72400', '73400', '-72400'],
+                ['20230628', '72600', '72000', '72700', '+72700'],
+                ['20230627', '72500', '72000', '72600', '+72600'],
+                ['20230626', '71700', '71500', '72500', '+72400'],
+                ['20230623', '72000', '71600', '72200', '+71600'],
+                ['20230622', '70200', '70100', '71500', '+71300'],
+                ['20230621', '70700', '70400', '71200', '-70500'],
+                ['20230620', '70700', '70400', '71400', '+71400'],
+                ['20230619', '71300', '70900', '71700', '-71200']
             ]
         }
 
@@ -50,8 +72,10 @@ class TestIndicators:
 
         self.candle_container.high = 70000
         self.candle_container.low = 68900
-        self.candle_container.close = 70500
+        self.candle_container.close = 70600
         self.candle_container.open = 70000
+
+        self._boolean = [True, False]
 
     def test_golden_cross(self):
         """
@@ -70,7 +94,9 @@ class TestIndicators:
             string_
         )
 
-        self.test_by_indicator_class(indi_node.indicator_class)
+        result = self.t_by_indicator_class(indi_node.indicator_class)
+
+        self.assertIn(result, self._boolean)
 
     def test_bollinger_band(self):
         """
@@ -89,7 +115,9 @@ class TestIndicators:
             string_
         )
 
-        return self.test_by_indicator_class(indi_node.indicator_class)
+        result = self.t_by_indicator_class(indi_node.indicator_class)
+
+        self.assertIn(result, self._boolean)
 
     def test_rsi(self):
         """
@@ -107,7 +135,7 @@ class TestIndicators:
             string_
         )
 
-        self.test_by_indicator_class(indi_node.indicator_class)
+        self.t_by_indicator_class(indi_node.indicator_class)
 
     def test_macd(self):
         """
@@ -128,7 +156,7 @@ class TestIndicators:
             string_
         )
 
-        self.test_by_indicator_class(indi_node.indicator_class)
+        self.t_by_indicator_class(indi_node.indicator_class)
 
     def test_stochastic(self):
         """
@@ -149,7 +177,7 @@ class TestIndicators:
             string_
         )
 
-        self.test_by_indicator_class(indi_node.indicator_class)
+        self.t_by_indicator_class(indi_node.indicator_class)
 
     def test_cci(self):
         """
@@ -168,9 +196,9 @@ class TestIndicators:
             string_
         )
 
-        self.test_by_indicator_class(indi_node.indicator_class)
+        self.t_by_indicator_class(indi_node.indicator_class)
 
-    def test_by_indicator_class(self, indi_class):
+    def t_by_indicator_class(self, indi_class):
         indi_class.calculator()
 
         print(indi_class._data_set)
