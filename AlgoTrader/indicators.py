@@ -72,18 +72,18 @@ class BaseIndicator:
     def get_ema(
             self,
             candles: list,
-            period: int
     ) -> list:
-        # 지수 이동 평균, [oldest, ... latest]
-        multipliers = (2 / (period + 1))
+        current_price = candles[0]
 
-        reversed_data = list(reversed(candles[:period]))
-
-        previous_ema = reversed_data[0]
+        multipliers = 2 / (len(candles) + 1)
+        reversed_candles = list(reversed(candles))
+        previous_ema = reversed_candles[0]
         ema_list = [previous_ema]
-        for candle in reversed_data[1:]:
-            previous_ema = (candle * multipliers) + (previous_ema * (1 - multipliers))
+        for n, cp in enumerate(reversed_candles[1:]):
+            previous_ema = (cp * multipliers) + (previous_ema * (1 - multipliers))
             ema_list.append(previous_ema)
+
+        ema_list.reverse()
 
         return ema_list
 
@@ -296,23 +296,21 @@ class MACD(BaseIndicator):
         with self._container_lock:
             today_candles = self._candle_container.get_close_candles()
 
-        short_ema_list = self.get_ema(today_candles, self._settings["short_period"])
-        long_ema_list = self.get_ema(today_candles, self._settings["long_period"])
+        short_ema_list = self.get_ema(today_candles[:self._settings["short_period"]])
+        long_ema_list = self.get_ema(today_candles[:self._settings["long_period"]])
 
-        max_len = min(len(short_ema_list), len(long_ema_list))
-
-        short_ema_list = short_ema_list[-max_len:]
-        long_ema_list = long_ema_list[-max_len:]
+        short_ema_list = short_ema_list[:self._settings["short_period"]]
+        long_ema_list = long_ema_list[:self._settings["short_period"]]
 
         macd_line = np.array(short_ema_list) - np.array(long_ema_list)
 
-        latest_macd_line = macd_line[-1]
-        prev_macd_line = macd_line[-2]
+        latest_macd_line = macd_line[0]
+        prev_macd_line = macd_line[1]
 
-        signal_line = self.get_ema(macd_line, self._settings['signal_period'])
+        signal_line = self.get_ema(macd_line[:self._settings['signal_period']])
 
-        latest_signal_line = signal_line[-1]
-        prev_signal_line = signal_line[-2]
+        latest_signal_line = signal_line[0]
+        prev_signal_line = signal_line[1]
 
         prev_macd_histogram = prev_macd_line - prev_signal_line
         latest_macd_histogram = latest_macd_line - latest_signal_line

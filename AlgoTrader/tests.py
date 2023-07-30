@@ -17,6 +17,7 @@ import unittest
 BB, MACD, GC 확인 필요.
 """
 
+
 class TestIndicators(unittest.TestCase):
     """
         golden cross:
