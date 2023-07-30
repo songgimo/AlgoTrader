@@ -67,7 +67,7 @@ class BaseIndicator:
             self,
             values: list
     ) -> float:
-        return np.average(values)
+        return np.sum(values) / len(values)
 
     def get_ema(
             self,
@@ -394,30 +394,20 @@ class CCI(BaseIndicator):
 
     def calculator(self) -> None:
         with self._container_lock:
-            today_candles = self._candle_container.get_close_candles()
+            today_close_list = self._candle_container.get_close_candles()
+            today_high_list = self._candle_container.get_high_candles()
+            today_low_list = self._candle_container.get_low_candles()
 
-        chart_range = self._settings["reference"]
         period = self._settings["period"]
 
-        typical_price_list = []
-        for n in range(0, len(today_candles)):
-            close_by_period = today_candles[n:n+chart_range]
-
-            high, low = max(close_by_period), min(close_by_period)
-            latest = close_by_period[0]
-
-            typical_price = (high + low + latest) / 3
-
-            typical_price_list.append(typical_price)
+        typical_price_list = (today_high_list + today_low_list + today_close_list) / 3
 
         cci_list = []
         for n in range(2):
             period_sma = self.get_sma(typical_price_list[n:period + n])
-            distance = np.absolute(np.subtract(period_sma, typical_price_list[n:period + n]))
-
-            mean_deviation = np.sum(distance) / period
-            subtract_typical = typical_price_list[-2 + n] - period_sma
-            cci = np.divide(subtract_typical, 0.015 * mean_deviation)
+            distance = typical_price_list[n:period + n] - period_sma
+            mean_deviation = np.sum(np.absolute(distance)) / period
+            cci = distance[0] / (0.015 * mean_deviation)
 
             cci_list.append(cci)
 
