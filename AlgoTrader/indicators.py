@@ -339,39 +339,35 @@ class Stochastic(BaseIndicator):
 
     def calculator(self) -> None:
         with self._container_lock:
-            today_candles = self._candle_container.get_close_candles()
+            today_close_list = self._candle_container.get_close_candles()
+            today_high_list = self._candle_container.get_high_candles()
+            today_low_list = self._candle_container.get_low_candles()
 
         period = self._settings["period"]
         period_m = self._settings["period_m"]
         period_t = self._settings["period_t"]
 
-        today_candles.reverse()
-        k_list = []
-        for n in range(period_m + period_t):
-            # 0, 1, 2, 3, 4, 5
-            latest = today_candles[n]
-            highest_by_period = np.max(today_candles[n:period+n])
-            lowest_by_period = np.min(today_candles[n:period+n])
+        fast_k_list = []
+        for n in range(period_m * period_t):
+            current_price = today_close_list[n]
+            lowest_price = min(today_low_list[n:period + n])
+            highest_price = max(today_high_list[n:period + n])
 
-            raw_data = (latest - lowest_by_period) / (highest_by_period - lowest_by_period)
-
-            fastk = raw_data * 100
-            k_list.append(fastk)
+            fast_k = ((current_price - lowest_price) / (highest_price - lowest_price)) * 100
+            fast_k_list.append(fast_k)
 
         fast_d_list = []
-        for d in range(period_m):
-            # 0:3 1:4 2:5
-            fast_d_list.append(self.get_sma([k_list[d:d+period_m]]))
+        for n in range(period_m + period_t):
+            fast_d_list.append(self.get_sma(fast_k_list[n:period_m + n]))
 
         slow_d_list = []
-        for sd in range(period_t):
-            # 0:3 1:4 2:5
-            slow_d_list.append(self.get_sma(slow_d_list[sd:sd+period_t]))
+        for n in range(period_t):
+            slow_d_list.append(self.get_sma(fast_d_list[n:period_t + n]))
 
         if self._settings["reference"] == "fastk":
             self._data_set = {
-                "prev": k_list[1],
-                "latest": k_list[0]
+                "prev": fast_k_list[1],
+                "latest": fast_k_list[0]
             }
         elif self._settings["reference"] in ["fastd", "slowd"]:
             self._data_set = {
