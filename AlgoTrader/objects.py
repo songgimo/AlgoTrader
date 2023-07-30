@@ -18,7 +18,8 @@ class CandleContainer:
         # symbol은 005790같은 주식 코드 값이나, eth같은 symbol값이 입력된다.
         self.symbol = symbol
 
-        self.candle = []
+        self.candles = []
+        self.open = 0
         self.close = 0
         self.high = 0
         self.low = 0
@@ -40,17 +41,18 @@ class CandleContainer:
             self.history_high.append(int(high))
             self.history_close.append(abs(int(close)))
 
+    def place_ohlc(self, price_dict):
+        self.candles = price_dict["candles"]
+        self.close = price_dict["close"]
+        self.open = price_dict["open"]
+        self.high = price_dict["high"]
+        self.low = price_dict["low"]
+
     def get_close_candles(self):
         return [self.close] + self.history_close
 
     def get_close_candles_without_today(self):
         return self.history_close
-
-    def set_candle(self, value):
-        self.candle = value
-
-    def set_close(self, value):
-        self.close = value
 
 
 class Settings:

@@ -76,7 +76,8 @@ class StockRefresher(threading.Thread):
                     continue
 
                 container = self._thread_dict[stock_code]["container"]
-                container.place_history_date_ohlc()
+                with self._thread_dict[stock_code]["container_lock"]:
+                    container.place_history_date_ohlc()
 
             break
 
@@ -90,15 +91,7 @@ class StockRefresher(threading.Thread):
                     continue
 
                 container = self._thread_dict[stock_code]["container"]
-                close = current_price_dict[stock_code]["close"]
-
-                open_ = current_price_dict[stock_code]["open"]
-                high = current_price_dict[stock_code]["high"]
-                low = current_price_dict[stock_code]["low"]
-
-                container.close = close
-                container.high = high
-                container.low = low
-                container.open_ = open_
+                with self._thread_dict[stock_code]["container_lock"]:
+                    container.place_ohlc(current_price_dict[stock_code])
 
             time.sleep(0.1)
