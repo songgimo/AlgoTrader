@@ -69,6 +69,24 @@ class BaseIndicator:
     ) -> float:
         return np.average(values)
 
+    def get_ema(
+            self,
+            candles: list,
+            period: int
+    ) -> list:
+        # 지수 이동 평균, [oldest, ... latest]
+        multipliers = (2 / (period + 1))
+
+        reversed_data = list(reversed(candles[:period]))
+
+        previous_ema = reversed_data[0]
+        ema_list = [previous_ema]
+        for candle in reversed_data[1:]:
+            previous_ema = (candle * multipliers) + (previous_ema * (1 - multipliers))
+            ema_list.append(previous_ema)
+
+        return ema_list
+
     def bound_checker(self) -> bool:
         if self._settings["method"] == "bound_upper":
             if self._settings["bound"] > self._data_set["latest"]:
@@ -129,8 +147,8 @@ class GoldenCross(BaseIndicator):
         short_close = today_candles[:self._settings["short_period"]]
         long_close = today_candles[:self._settings["long_period"]]
 
-        prev_short_close = yesterday_candles[self._settings["short_period"]]
-        prev_long_close = yesterday_candles[self._settings["long_period"]]
+        prev_short_close = yesterday_candles[:self._settings["short_period"]]
+        prev_long_close = yesterday_candles[:self._settings["long_period"]]
 
         short_sma = self.get_sma(short_close)
         long_sma = self.get_sma(long_close)
