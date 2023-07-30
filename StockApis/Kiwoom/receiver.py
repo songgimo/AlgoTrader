@@ -204,14 +204,20 @@ class RealTxEventReceiver(threading.Thread):
             low = abs(int(real_data[11]))
 
             if stock_code not in self.current_price_dict:
-                self.current_price_dict[stock_code]["close"] = [close]
+                self.current_price_dict[stock_code] = {
+                    "candles": [close],
+                }
             else:
                 if len(self.current_price_dict[stock_code]) > 100:
                     self.current_price_dict[stock_code] = self.current_price_dict[stock_code][1:]
-                self.current_price_dict[stock_code]["close"].append(real_data)
-                self.current_price_dict[stock_code]["open"] = open_
-                self.current_price_dict[stock_code]["high"] = high
-                self.current_price_dict[stock_code]["low"] = low
+                self.current_price_dict[stock_code]["candles"].append(real_data)
+
+            self.current_price_dict[stock_code].update({
+                "close": close,
+                "open": open_,
+                "high": high,
+                "low": low
+            })
             REDIS_SERVER.set(RealReg.CurrentPrice, self.current_price_dict)
 
         elif real_type == "주식호가잔량":
