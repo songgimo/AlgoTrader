@@ -38,6 +38,9 @@ class RedisController:
     def delete(self, keys: list):
         self._server.delete(*keys)
 
+    def flush_all(self):
+        self._server.flushall()
+
 
 class DecimalDecoder(json.JSONDecoder):
     """

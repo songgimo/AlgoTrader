@@ -152,11 +152,16 @@ class Trader(threading.Thread):
             signal = REDIS_SERVER.get(consts.RequestHeader.Trade)
 
             if signal is None:
+                time.sleep(0.1)
                 continue
 
             if DEBUG:
                 print(f"###### signal received, from Trade, {signal=} ######")
-            # self.trade_object.execute()
+                time.sleep(3)
+            else:
+                self.trade_object.execute()
+
+            time.sleep(0.1)
 
 
 def delete_kiwoom_data():
@@ -179,6 +184,8 @@ if __name__ == '__main__':
 
     queue_ctrl = objects.QueueController()
 
+    REDIS_SERVER.flush_all()
+
     sd = Sender(
         ctrl,
         ctrl_lock,
@@ -197,5 +204,7 @@ if __name__ == '__main__':
         CONFIG["kiwoom"]["codes"],
 
     )
+
+    td.start()
 
     app.exec_()
