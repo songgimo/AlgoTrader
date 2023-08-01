@@ -132,6 +132,7 @@ class Trader(threading.Thread):
             queue_controller,
             stock_code,
         )
+        self._traded_symbol = []
 
         self.define_trade_object()
 
@@ -149,17 +150,24 @@ class Trader(threading.Thread):
 
     def run(self) -> None:
         while True:
-            signal = REDIS_SERVER.get(consts.RequestHeader.Trade)
+            signal_data = REDIS_SERVER.pop(consts.RequestHeader.Trade)
 
-            if signal is None:
+            if not signal_data:
                 time.sleep(0.1)
                 continue
 
+            symbol = signal_data["symbol"]
+
             if DEBUG:
-                print(f"###### signal received, from Trade, {signal=} ######")
+                print(f"###### signal received, from Trade, {signal_data=} ######")
                 time.sleep(3)
             else:
-                self.trade_object.execute()
+                if symbol in self._traded_symbol:
+                    continue
+                result = self.trade_object.execute()
+
+                if result:
+                    self._traded_symbol.append(symbol)
 
             time.sleep(0.1)
 

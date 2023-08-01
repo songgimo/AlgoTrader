@@ -35,6 +35,25 @@ class RedisController:
         result = self._server.set(key, json.dumps(value))
         return result
 
+    def push(self, key: str, data: dict):
+        self._server.lpush(key, json.dumps(data))
+
+    def pop(self, key: str, use_decimal=False):
+        try:
+            value = self._server.lpop(key)
+
+            if not value:
+                return None
+
+            if use_decimal:
+                json_to_dict_value = json.loads(value, cls=DecimalDecoder)
+            else:
+                json_to_dict_value = json.loads(value)
+
+            return json_to_dict_value
+        except:
+            return None
+
     def delete(self, keys: list):
         self._server.delete(*keys)
 
