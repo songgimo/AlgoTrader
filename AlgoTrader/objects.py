@@ -51,24 +51,31 @@ class CandleContainer:
         self.low = price_dict["low"]
 
     def get_open_candles(self):
-        return np.array(self.history_open)
-        # return [self.open] + self.history_open
+        return np.array([
+            self.open,
+            *self.history_open[1:]
+        ])
 
     def get_high_candles(self):
-        return np.array(self.history_high)
-        # return [self.high] + self.history_high
+        return np.array([
+            self.high,
+            *self.history_high[1:]
+        ])
 
     def get_low_candles(self):
-        return np.array(self.history_low)
-        # return [self.low] + self.history_low
+        return np.array([
+            self.low,
+            *self.history_low[1:]
+        ])
 
     def get_close_candles(self):
-        return np.array(self.history_close)
-        # return [self.close] + self.history_close
+        return np.array([
+            self.close,
+            *self.history_close[1:]
+        ])
 
     def get_close_candles_without_today(self):
-        return self.history_close[1:-1]
-        # return self.history_close
+        return np.array(self.history_close[1:-1])
 
 
 class Settings:
