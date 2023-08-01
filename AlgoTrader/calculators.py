@@ -48,7 +48,7 @@ class Stock(threading.Thread):
 
             if self._op(left_val, right_val):
                 data = {"symbol": self._candle_container.symbol}
-                REDIS_SERVER.set(kiwoom_consts.RequestHeader.Trade, data)
+                REDIS_SERVER.push(kiwoom_consts.RequestHeader.Trade, data)
 
             if DEBUG:
                 print(left_indicator._data_set, right_indicator._data_set)
