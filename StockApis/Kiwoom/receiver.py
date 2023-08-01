@@ -2,7 +2,6 @@ from StockApis.Kiwoom.consts import Etc, RequestHeader, RealReg
 from utils import REDIS_SERVER
 
 import threading
-import queue
 
 from StockApis.Kiwoom import objects
 
@@ -198,6 +197,7 @@ class RealTxEventReceiver(threading.Thread):
             return
 
         if real_type in ["주식시세", "주식체결", "주식예상체결"]:
+            real_data = real_data.split("\t")
             close = abs(int(real_data[1]))
             open_ = abs(int(real_data[9]))
             high = abs(int(real_data[10]))
