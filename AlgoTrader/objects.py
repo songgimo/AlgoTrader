@@ -34,7 +34,8 @@ class CandleContainer:
         self.history_high = []
         self.history_low = []
 
-    def place_history_date_ohlc(self):
+    def place_history_date_ohlc(self, history_data):
+        self.history_data = history_data
         for each in self.history_data:
             date_, open_, low, high, close = each
             self.history_datetime.append(datetime.datetime.strptime(date_, "%Y%m%d"))
@@ -51,24 +52,35 @@ class CandleContainer:
         self.low = price_dict["low"]
 
     def get_open_candles(self):
+        if not self.history_open:
+            return None
         return np.array([
             self.open,
             *self.history_open[1:]
         ])
 
     def get_high_candles(self):
+        if not self.history_high:
+            return None
+
         return np.array([
             self.high,
             *self.history_high[1:]
         ])
 
     def get_low_candles(self):
+        if not self.history_low:
+            return None
+
         return np.array([
             self.low,
             *self.history_low[1:]
         ])
 
     def get_close_candles(self):
+        if not self.history_close:
+            return None
+
         return np.array([
             self.close,
             *self.history_close[1:]
