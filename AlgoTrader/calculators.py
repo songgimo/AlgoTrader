@@ -8,7 +8,7 @@ import threading
 import indicators
 import time
 
-from utils import REDIS_SERVER, DEBUG
+from utils import REDIS_SERVER, DEBUG, CONFIG
 from StockApis.Kiwoom import consts as kiwoom_consts
 from objects import CandleContainer
 
@@ -51,8 +51,9 @@ class Stock(threading.Thread):
                 REDIS_SERVER.set(kiwoom_consts.RequestHeader.Trade, data)
 
             if DEBUG:
+                print(left_indicator._data_set, right_indicator._data_set)
                 print(left_val, right_val)
-                time.sleep(10)
+                time.sleep(5)
 
 
 class StockRefresher(threading.Thread):
@@ -77,7 +78,14 @@ class StockRefresher(threading.Thread):
 
                 container = self._thread_dict[stock_code]["container"]
                 with self._thread_dict[stock_code]["container_lock"]:
-                    container.place_history_date_ohlc()
+                    container.place_history_date_ohlc(stock_history_dict[stock_code])
+
+                if DEBUG:
+                    print(f"######### {stock_code} #########")
+                    print(f"set, {container.history_open=}")
+                    print(f"set, {container.history_close=}")
+                    print(f"set, {container.history_low=}")
+                    print(f"set, {container.history_high=}")
 
             break
 
@@ -94,4 +102,44 @@ class StockRefresher(threading.Thread):
                 with self._thread_dict[stock_code]["container_lock"]:
                     container.place_ohlc(current_price_dict[stock_code])
 
-            time.sleep(0.1)
+                if DEBUG:
+                    print(f"######### {stock_code} #########")
+                    print(f"set, {container.open=}, {container.low=}, {container.close=}, {container.high=}")
+
+            if DEBUG:
+                time.sleep(5)
+            else:
+                time.sleep(0.1)
+
+
+if __name__ == '__main__':
+    class TStockRefresher:
+        def __init__(self, thread_dict):
+            self._stock_refresher = StockRefresher(thread_dict)
+
+        def run_refresher(self):
+            self._stock_refresher.run()
+            while True:
+                time.sleep(1)
+
+    def t_stock_refresh():
+        lt = "Stochastic[1, 14, 3, 3, 50, fastK, bound_lower]"
+        rt = "CCI[1, 14, 50, 3, bound_upper]"
+        op = "and"
+
+        symbol_list = CONFIG["kiwoom"]["codes"].split(";")
+        thread_dict = dict()
+        for symbol in symbol_list:
+            container = CandleContainer(symbol)
+            lock = threading.Lock()
+            thread_dict[symbol] = {
+                "container": container,
+                "container_lock": lock,
+                "thread": Stock(container, lock, lt, rt, op)
+            }
+
+        rt = TStockRefresher(thread_dict)
+        rt.run_refresher()
+
+
+    t_stock_refresh()
