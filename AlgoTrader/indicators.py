@@ -106,6 +106,10 @@ class BaseIndicator:
         return False
 
     def check_values(self) -> bool:
+        if not self._data_set:
+            print(f"{self}, 정보가 없습니다.")
+            return False
+
         if DEBUG:
             print(self._settings)
 
@@ -132,7 +136,8 @@ class GoldenCross(BaseIndicator):
 
     def check_values(self) -> bool:
         if not self._data_set:
-            raise "정보가 없음"
+            print(f"{self}, 정보가 없습니다.")
+            return False
 
         if self._data_set["prev_short"] >= self._data_set["prev_long"]:
             if self._data_set["short"] >= self._data_set["long"]:
@@ -143,6 +148,9 @@ class GoldenCross(BaseIndicator):
         with self._container_lock:
             today_candles = self._candle_container.get_close_candles()
             yesterday_candles = self._candle_container.get_close_candles_without_today()
+
+        if today_candles is None or yesterday_candles is None:
+            return
 
         short_close = today_candles[:self._settings["short_period"]]
         long_close = today_candles[:self._settings["long_period"]]
@@ -174,6 +182,10 @@ class BollingerBand(BaseIndicator):
         return "bollingerband"
 
     def check_values(self) -> bool:
+        if not self._data_set:
+            print(f"{self}, 정보가 없습니다.")
+            return False
+
         line = self._settings["line"]
         if self._settings["method"] == "cross_bound_upper":
             # 이전 perb는 line line(upper, lower, middle)을 넘지 않았음
@@ -228,6 +240,9 @@ class BollingerBand(BaseIndicator):
             today_candles = self._candle_container.get_close_candles()
             yesterday_candles = self._candle_container.get_close_candles_without_today()
 
+        if today_candles is None or yesterday_candles is None:
+            return
+
         period = self._settings["period"]
 
         prev_dict = self.get_band_index(yesterday_candles[:period])
@@ -266,6 +281,9 @@ class RSI(BaseIndicator):
         with self._container_lock:
             today_candles = self._candle_container.get_close_candles()
 
+        if today_candles is None:
+            return
+
         period = self._settings["period"]
         
         differences = np.array(today_candles[:-1]) - np.array(today_candles[1:])
@@ -295,6 +313,9 @@ class MACD(BaseIndicator):
     def calculator(self) -> None:
         with self._container_lock:
             today_candles = self._candle_container.get_close_candles()
+
+        if today_candles is None:
+            return
 
         short_ema_list = self.get_ema(today_candles[:self._settings["short_period"]])
         long_ema_list = self.get_ema(today_candles[:self._settings["long_period"]])
@@ -340,6 +361,9 @@ class Stochastic(BaseIndicator):
             today_close_list = self._candle_container.get_close_candles()
             today_high_list = self._candle_container.get_high_candles()
             today_low_list = self._candle_container.get_low_candles()
+
+        if today_close_list is None or today_high_list is None or today_low_list is None:
+            return
 
         period = self._settings["period"]
         period_m = self._settings["period_m"]
@@ -391,6 +415,9 @@ class CCI(BaseIndicator):
             today_close_list = self._candle_container.get_close_candles()
             today_high_list = self._candle_container.get_high_candles()
             today_low_list = self._candle_container.get_low_candles()
+
+        if today_close_list is None or today_high_list is None or today_low_list is None:
+            return
 
         period = self._settings["period"]
 
