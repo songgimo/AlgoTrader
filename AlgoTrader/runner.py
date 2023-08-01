@@ -5,6 +5,7 @@
 
 from calculators import Stock, StockRefresher
 from objects import CandleContainer
+from utils import REDIS_SERVER, CONFIG, DEBUG
 
 import threading
 import time
@@ -52,7 +53,7 @@ if __name__ == '__main__':
     op = "and"
 
     runner = AlgoRunner(
-        "005790;005930",
+        CONFIG["kiwoom"]["codes"],
         lt,
         rt,
         op

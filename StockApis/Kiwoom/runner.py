@@ -79,7 +79,7 @@ class Sender(threading.Thread):
             time.sleep(1)
         print("로그인 완료.")
 
-        # self.real_current_price_setter()
+        self.real_current_price_setter()
         history_data = dict()
         for code in self.code_list:
             price_object = kiwoom.Price(
@@ -155,7 +155,7 @@ class Trader(threading.Thread):
                 continue
 
             if DEBUG:
-                print(f"#### signal received, from Trade, {signal=}")
+                print(f"###### signal received, from Trade, {signal=} ######")
             # self.trade_object.execute()
 
 

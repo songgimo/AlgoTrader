@@ -266,23 +266,4 @@ class TestHistoryPlace(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    def t_stock_refresh():
-        lt = "Stochastic[1, 14, 3, 3, 50, fastK, bound_lower]"
-        rt = "CCI[1, 14, 50, 3, bound_upper]"
-        op = "and"
-
-        symbol_list = "005930;066570".split(";")
-        thread_dict = dict()
-        for symbol in symbol_list:
-            container = CandleContainer(symbol)
-            lock = threading.Lock()
-            thread_dict[symbol] = {
-                "container": container,
-                "container_lock": lock,
-                "thread": Stock(container, lock, lt, rt, op)
-            }
-
-        rt = TStockRefresher(thread_dict)
-        rt.run_refresher()
-
     unittest.main()
