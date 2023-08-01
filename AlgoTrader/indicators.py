@@ -73,8 +73,6 @@ class BaseIndicator:
             self,
             candles: list,
     ) -> list:
-        current_price = candles[0]
-
         multipliers = 2 / (len(candles) + 1)
         reversed_candles = list(reversed(candles))
         previous_ema = reversed_candles[0]

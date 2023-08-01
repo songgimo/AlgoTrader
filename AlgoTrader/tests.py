@@ -36,6 +36,8 @@ class TestIndicators(unittest.TestCase):
         }
         self._mock_history = {
             '005930': [
+                ['20230801', '70100', '70000', '71200', '71100'],
+                ['20230731', '70900', '69800', '71000', '-69800'],
                 ['20230728', '71800', '70100', '72400', '-70600'],
                 ['20230727', '69900', '69300', '71700', '+71700'],
                 ['20230726', '69800', '68100', '70600', '-69800'],
@@ -72,13 +74,12 @@ class TestIndicators(unittest.TestCase):
         self.candle_container = CandleContainer("005930")
         self.lock = threading.Lock()
 
-        self.candle_container.history_data = self._mock_history["005930"]
-        self.candle_container.place_history_date_ohlc()
+        self.candle_container.place_history_date_ohlc(self._mock_history["005930"])
 
-        self.candle_container.high = 70000
-        self.candle_container.low = 68900
-        self.candle_container.close = 70600
-        self.candle_container.open = 70000
+        self.candle_container.open = 70100
+        self.candle_container.low = 70000
+        self.candle_container.high = 71200
+        self.candle_container.close = 71100
 
         self._boolean = [True, False]
 
