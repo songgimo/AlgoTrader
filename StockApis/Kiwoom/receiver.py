@@ -2,6 +2,7 @@ from StockApis.Kiwoom.consts import Etc, RequestHeader, RealReg
 from utils import REDIS_SERVER
 
 import threading
+import re
 
 from StockApis.Kiwoom import objects
 
@@ -139,11 +140,29 @@ class TxEventReceiver(threading.Thread):
                 result = self.trading_event(transaction_code, recode_name)
             elif RequestHeader.Price == identifier:
                 result = self.price_event(request_name, transaction_code, recode_name)
-
+            elif RequestHeader.Account == identifier:
+                result = self.account_event(request_name, transaction_code, recode_name)
             self._queue_object.put_data(request_name, result)
 
     def trading_event(self, transaction_code: int, recode_name: str):
         return self._controller.get_common_data(transaction_code, recode_name, Etc.NoRepeat, '주문번호')
+
+    def account_event(
+            self,
+            request_name: str,
+            transaction_code: int,
+            recode_name: str
+    ):
+        data = {}
+        cash_balance = self._controller.get_common_data(transaction_code, recode_name, Etc.Repeat, '예수금')
+        data['cash_balance'] = re.sub(r'[^\d]', '', cash_balance)
+        data['stock_balance'] = dict()
+        for i in range(self._controller.get_repeat_count(transaction_code, request_name)):
+            code = self._controller.get_common_data_with_repeat(transaction_code, request_name, i, '종목코드')
+            current_stock = self._controller.get_common_data_with_repeat(transaction_code, request_name, i, '보유수량')
+            data['stock_balance'][code] = current_stock
+
+        return data
 
     def price_event(
             self,
