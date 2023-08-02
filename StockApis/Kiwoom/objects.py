@@ -32,6 +32,9 @@ class Controller:
         self.controller.dynamicCall("CommConnect()")
         # self.controller = client.Dispatch("KHOPENAPI.KHOpenAPICtrl.1")
 
+    def get_account_list(self):
+        return self.controller.dynamicCall('GetLoginInfo("ACCLIST")').split(';')
+
     def send_order(
             self,
             request_name,
