@@ -1,20 +1,58 @@
 from StockApis.Kiwoom.consts import RequestHeader, TxCode, Etc
-from StockApis.Kiwoom import receiver, objects
-from utils import CONFIG, DEBUG
+from StockApis.Kiwoom import objects
+from utils import CONFIG
 
-import re
 import threading
 
 
-class AccountInfo:
+class Account:
     """
-        account 관련 정보 추가
+        Account 관련 Object
     """
-    def __init__(self):
-        self.account_number = None
 
-    def set_account_number(self, account_number):
-        self.account_number = account_number
+    def __init__(
+            self,
+            controller: objects.Controller,
+            controller_lock: threading.Lock,
+            queue_object: objects.QueueController,
+    ):
+        self.__str = RequestHeader.Account
+        self._controller = controller
+        self._controller_lock = controller_lock
+        self._queue_object = queue_object
+
+        self.cash_balance = None
+        self.stock_info = None
+        self.account = CONFIG["kiwoom"]["account"]
+
+        self.set_remaining_info()
+
+    def get_account_list(self):
+        return self._controller.get_account_list()
+
+    def get_use_balance_percent(self):
+        return int(CONFIG["kiwoom"]["use-balance-percent"] * self.cash_balance)
+
+    def get_use_stock_percent(self):
+        return int(CONFIG["kiwoom"]["use-balance-percent"] * self.stock_info)
+
+    def set_remaining_info(self):
+        self._controller.set_values('계좌번호', self.account)
+        self._controller.set_values('비밀번호', '')
+        self._controller.set_values('상장폐지조회구분', TxCode.Get.ExceptDelisting)
+        self._controller.set_values('비밀번호입력매체구분', TxCode.Get.DefaultPasswordType)
+
+        screen_number = CONFIG["kiwoom"]["account"][:4]
+        rq_name = '계좌평가현황요청'
+        self._queue_object.add(rq_name)
+        self._controller.request_common_data(rq_name, TxCode.Get.AccountInfo, Etc.NoRepeat, screen_number)
+
+        stock_queue = self._queue_object.get(rq_name)
+
+        remaining_info = stock_queue.get(True, timeout=10)
+
+        self.cash_balance = remaining_info["cash_balance"]
+        self.stock_info = remaining_info["stock_balance"]
 
 
 class SetPriceCode:
