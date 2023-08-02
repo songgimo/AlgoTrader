@@ -103,37 +103,46 @@ class Trade:
             controller: objects.Controller,
             controller_lock: threading.Lock,
             queue_controller: objects.QueueController,
-            stock_code: str,
+            account_object: Account
     ):
         self.__str = RequestHeader.Trade
         self._controller = controller
         self._controller_lock = controller_lock
         self._queue_object = queue_controller
-        self._stock_code = stock_code
+        self._stock_code = None
         self._qty = None
         self._price = None
 
         self.order_code_object = SetOrderCode()
         self.price_code_object = SetPriceCode()
-        self.account_object = AccountInfo()
+        self.account_object = account_object
 
-        self._screen_number = stock_code
+        self._screen_number = None
         self._validate_check = False
         self._request_name = None
         self._origin_order_number = ""
 
-    def validate(self):
+    def validate(self) -> bool:
         if self.order_code_object.order_code is None:
             # raise trade type error
-            return "order code가 없음."
+            raise "order code가 없음."
         elif self.price_code_object is None:
-            return "price code가 존재하지 않음."
+            raise "price code가 존재하지 않음."
+        elif self._price is None:
+            raise "price 값이 설정되어야 합니다."
+        elif self._qty is None:
+            raise "quantity 값이 설정되어야 합니다."
+        elif self._screen_number is None:
+            raise "screen number 값이 설정되어야 합니다."
 
         self._validate_check = True
-        return "정상적인 데이터"
+        return True
 
     def set_origin_order_number(self, number):
         self._origin_order_number = number
+
+    def set_symbol(self, code):
+        self._stock_code = code
 
     def set_request_name(self):
         self._request_name = "_".join([
@@ -150,7 +159,11 @@ class Trade:
         self._price = price
 
     def set_quantity(self):
-        self._qty = CONFIG["kiwoom"]["approximately-total-price"] // self._price
+        if self.order_code_object.order_str == "buy":
+            use_balance = self.account_object.get_use_balance_percent()
+            self._qty = use_balance // self._price
+        elif self.order_code_object.order_str == "sell":
+            self._qty = self.account_object.get_use_stock_percent()
 
     def execute(self):
         if not self._validate_check:
@@ -160,19 +173,13 @@ class Trade:
             self.set_request_name()
             self._queue_object.add(self._request_name)
 
-        if self._price is None:
-            raise "price 값이 설정되어야 합니다."
-
-        if self._qty is None:
-            raise "quantity 값이 설정되어야 합니다."
-
         if self.price_code_object.trading_code == "03":
             self._price = 0
 
         order_parameters = [
             self._request_name,
             self._screen_number,
-            self.account_object.account_number,
+            self.account_object.account,
             self.order_code_object.order_code,
             self._stock_code,
             self._qty,
