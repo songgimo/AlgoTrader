@@ -21,38 +21,45 @@ class Account:
         self._controller_lock = controller_lock
         self._queue_object = queue_object
 
-        self.cash_balance = None
-        self.stock_info = None
+        self.account_info = self.AccountInfo(self)
         self.account = CONFIG["kiwoom"]["account"]
 
-        self.set_remaining_info()
+    class AccountInfo:
+        def __init__(self, parent):
+            self._parent = parent
+
+            self.cash_balance = None
+            self.stock_info = None
 
     def get_account_list(self):
         return self._controller.get_account_list()
 
     def get_use_balance_percent(self):
-        return int(CONFIG["kiwoom"]["use-balance-percent"] * self.cash_balance)
+        return int(CONFIG["kiwoom"]["use-balance-percent"] * self.account_info.cash_balance)
 
     def get_use_stock_percent(self):
-        return int(CONFIG["kiwoom"]["use-balance-percent"] * self.stock_info)
+        return int(CONFIG["kiwoom"]["use-balance-percent"] * self.account_info.stock_info)
 
-    def set_remaining_info(self):
-        self._controller.set_values('계좌번호', self.account)
-        self._controller.set_values('비밀번호', '')
-        self._controller.set_values('상장폐지조회구분', TxCode.Get.ExceptDelisting)
-        self._controller.set_values('비밀번호입력매체구분', TxCode.Get.DefaultPasswordType)
+    def set_account_info(self):
+        with self._controller_lock:
+            self._controller.set_values('계좌번호', self.account)
+            self._controller.set_values('비밀번호', '0000')
+            self._controller.set_values('상장폐지조회구분', TxCode.Get.ExceptDelisting)
+            self._controller.set_values('비밀번호입력매체구분', TxCode.Get.DefaultPasswordType)
 
-        screen_number = CONFIG["kiwoom"]["account"][:4]
-        rq_name = '계좌평가현황요청'
-        self._queue_object.add(rq_name)
-        self._controller.request_common_data(rq_name, TxCode.Get.AccountInfo, Etc.NoRepeat, screen_number)
+            screen_number = CONFIG["kiwoom"]["account"][:4]
+            rq_name = RequestHeader.Account
+            self._queue_object.add(rq_name)
+            self._controller.request_common_data(rq_name, TxCode.Get.AccountInfo, Etc.NoRepeat, screen_number)
 
         stock_queue = self._queue_object.get(rq_name)
-
-        remaining_info = stock_queue.get(True, timeout=10)
-
-        self.cash_balance = remaining_info["cash_balance"]
-        self.stock_info = remaining_info["stock_balance"]
+        try:
+            remaining_info = stock_queue.get(True, timeout=10)
+        except Exception as ex:
+            print(ex)
+            return
+        self.account_info.cash_balance = remaining_info["cash_balance"]
+        self.account_info.stock_info = remaining_info["stock_balance"]
 
 
 class SetPriceCode:
