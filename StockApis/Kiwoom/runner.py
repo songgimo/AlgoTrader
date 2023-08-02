@@ -133,6 +133,7 @@ class Trader(threading.Thread):
             account_object
         )
         self._traded_symbol = []
+        self.account_object = account_object
 
     def run(self) -> None:
         while True:
@@ -171,6 +172,30 @@ class Trader(threading.Thread):
             time.sleep(0.1)
 
 
+class AccountRefresher(threading.Thread):
+    def __init__(
+            self,
+            controller: objects.Controller,
+            controller_lock: threading.Lock,
+            queue_controller: objects.QueueController,
+    ):
+        super().__init__()
+        self.account = kiwoom.Account(
+            controller,
+            controller_lock,
+            queue_controller
+        )
+
+    def run(self) -> None:
+        while True:
+            self.account.set_account_info()
+
+            if DEBUG:
+                print(self.account.account_info.stock_info, self.account.account_info.cash_balance)
+
+            time.sleep(10)
+
+
 def delete_kiwoom_data():
     try:
         keys = [
@@ -204,18 +229,20 @@ if __name__ == '__main__':
 
     sd.start()
 
-    acc_object = kiwoom.Account(
+    acc_object = AccountRefresher(
         ctrl,
         ctrl_lock,
         queue_ctrl,
     )
+
+    acc_object.start()
 
     for _ in range(2):
         td = Trader(
             ctrl,
             ctrl_lock,
             queue_ctrl,
-            acc_object
+            acc_object.account.account_info
         )
 
         td.start()
