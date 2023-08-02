@@ -10,6 +10,9 @@ class TxCode:
         DailyCandle = "opt10005"
         DailyChart = "opt10081"
 
+        ExceptDelisting = "1"
+        DefaultPasswordType = "00"
+
     class GetChejan:
         StockCode = "9001"
         StockFilledPrice = "910"
@@ -26,6 +29,7 @@ class RequestHeader:
     Trade = "trade"
     Price = "price"
     Common = "common"
+    Account = "account"
 
 
 class Etc:
