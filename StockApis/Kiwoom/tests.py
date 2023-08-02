@@ -23,12 +23,14 @@ def sender_test():
 
     sd.start()
 
-    td = Trader(
-        ctrl,
-        ctrl_lock,
-        queue_ctrl,
-        CONFIG["kiwoom"]["codes"],
-    )
+    for _ in range(2):
+        td = Trader(
+            ctrl,
+            ctrl_lock,
+            queue_ctrl,
+        )
+
+        td.start()
 
     app.exec_()
 
