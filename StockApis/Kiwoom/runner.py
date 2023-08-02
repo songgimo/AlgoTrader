@@ -123,30 +123,16 @@ class Trader(threading.Thread):
             controller: objects.Controller,
             controller_lock: threading.Lock,
             queue_controller: objects.QueueController,
-            stock_code: str,
+            account_object: kiwoom.Account
     ):
         super().__init__()
         self.trade_object = kiwoom.Trade(
             controller,
             controller_lock,
             queue_controller,
-            stock_code,
+            account_object
         )
         self._traded_symbol = []
-
-        self.define_trade_object()
-
-    def define_trade_object(self):
-        self.trade_object.price_code_object.set_market()
-        if CONFIG["kiwoom"]["trade-type"] == "buy":
-            self.trade_object.order_code_object.set_buy()
-        else:
-            self.trade_object.order_code_object.set_sell()
-
-        self.trade_object.set_request_name()
-
-        self.trade_object.validate()
-        self.trade_object.set_screen_number("0101")
 
     def run(self) -> None:
         while True:
@@ -157,6 +143,7 @@ class Trader(threading.Thread):
                 continue
 
             symbol = signal_data["symbol"]
+            price = signal_data["price"]
 
             if DEBUG:
                 print(f"###### signal received, from Trade, {signal_data=} ######")
@@ -164,6 +151,18 @@ class Trader(threading.Thread):
             else:
                 if symbol in self._traded_symbol:
                     continue
+
+                self.trade_object.set_symbol(symbol)
+                self.trade_object.set_trade_price(price)
+                self.trade_object.set_quantity()
+                self.trade_object.set_screen_number(symbol[4:])
+
+                self.trade_object.price_code_object.set_market()
+                if CONFIG["kiwoom"]["trade-type"] == "buy":
+                    self.trade_object.order_code_object.set_buy()
+                else:
+                    self.trade_object.order_code_object.set_sell()
+                self.trade_object.validate()
                 result = self.trade_object.execute()
 
                 if result:
@@ -205,14 +204,20 @@ if __name__ == '__main__':
 
     sd.start()
 
-    td = Trader(
+    acc_object = kiwoom.Account(
         ctrl,
         ctrl_lock,
         queue_ctrl,
-        CONFIG["kiwoom"]["codes"],
-
     )
 
-    td.start()
+    for _ in range(2):
+        td = Trader(
+            ctrl,
+            ctrl_lock,
+            queue_ctrl,
+            acc_object
+        )
+
+        td.start()
 
     app.exec_()
