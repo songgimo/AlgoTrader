@@ -222,7 +222,7 @@ class RealTxEventReceiver(threading.Thread):
         except:
             return
 
-        if real_type in ["주식시세", "주식체결", "주식예상체결"]:
+        if real_type in ["주식시세", "주식체결"]:
             real_data = real_data.split("\t")
             close = abs(int(real_data[1]))
             open_ = abs(int(real_data[9]))
