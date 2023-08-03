@@ -39,4 +39,4 @@ class Etc:
 
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-TRADED_SYMBOL_PATH = ROOT_DIR + "/" + "kiwoom_info.txt"
+TRADED_SYMBOL_PATH = ROOT_DIR + "/" + "kiwoom_info.json"
