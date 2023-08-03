@@ -1,6 +1,7 @@
 import threading
 import time
 import atexit
+import json
 
 from StockApis.Kiwoom import kiwoom, receiver, consts, objects
 from utils import REDIS_SERVER, CONFIG, DEBUG
@@ -166,20 +167,22 @@ class Trader(threading.Thread):
             queue_controller,
             account_object
         )
-        self._traded_symbol = []
+        self._traded_info = {
+            "buy": [],
+            "sell": []
+        }
         self.account_object = account_object
 
-        self.read_traded_symbol()
+        self.read_traded_info()
 
-    def write_traded_symbol(self, traded_symbol):
-        with open(consts.TRADED_SYMBOL_PATH, "a") as file:
-            file.write(traded_symbol)
+    def write_traded_info(self):
+        with open(consts.TRADED_SYMBOL_PATH, "w") as file:
+            dumps = json.dumps(self._traded_info)
+            file.write(dumps)
 
-    def read_traded_symbol(self):
+    def read_traded_info(self):
         with open(consts.TRADED_SYMBOL_PATH, "r") as file:
-            contents = file.read().split("\n")
-
-        self._traded_symbol = contents
+            self._traded_info = json.loads(file.read())
 
     def run(self) -> None:
         while True:
@@ -201,15 +204,17 @@ class Trader(threading.Thread):
                 print(f"###### signal received, from Trade, {signal_data=} ######")
                 time.sleep(3)
 
-            if symbol in self._traded_symbol:
+            trade_type = CONFIG["kiwoom"]["trade-type"]
+
+            if symbol in self._traded_info[trade_type].keys():
                 continue
 
             self.trade_object.set_symbol(symbol)
-            self.trade_object.set_screen_number(symbol[4:])
+            self.trade_object.set_screen_number(symbol[:4])
             self.trade_object.set_trade_price(price)
 
             self.trade_object.price_code_object.set_market()
-            if CONFIG["kiwoom"]["trade-type"] == "buy":
+            if trade_type == "buy":
                 self.trade_object.order_code_object.set_buy()
             else:
                 self.trade_object.order_code_object.set_sell()
@@ -220,8 +225,8 @@ class Trader(threading.Thread):
             result = self.trade_object.execute()
 
             if result:
-                self._traded_symbol.append(symbol)
-                self.write_traded_symbol(symbol)
+                self._traded_info[trade_type].append(symbol)
+                self.write_traded_info()
 
             time.sleep(0.1)
 
