@@ -4,7 +4,7 @@ from utils import REDIS_SERVER
 import threading
 import re
 
-from StockApis.Kiwoom import objects
+from StockApis.Kiwoom import controllers
 
 
 class RealRegBlock:
@@ -13,7 +13,7 @@ class RealRegBlock:
     """
     def __init__(
             self,
-            controller: objects.Controller,
+            controller: controllers.Controller,
             controller_lock: threading.Lock,
     ):
         self.block = dict()
@@ -103,9 +103,9 @@ class TxEventReceiver(threading.Thread):
     """
     def __init__(
             self,
-            controller: objects.Controller,
+            controller: controllers.Controller,
             controller_lock: threading.Lock,
-            queue_object: objects.QueueController
+            queue_object: controllers.QueueController
     ):
         super().__init__()
         self._controller = controller
@@ -268,7 +268,7 @@ class RealTxEventReceiver(threading.Thread):
 
 
 class OnEventReceiver(threading.Thread):
-    def __init__(self, queue_controller: objects.QueueController):
+    def __init__(self, queue_controller: controllers.QueueController):
         super().__init__()
         self.daemon = True
         self._queue_controller = queue_controller

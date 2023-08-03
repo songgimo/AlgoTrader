@@ -1,5 +1,5 @@
 from StockApis.Kiwoom.consts import RequestHeader, TxCode, Etc
-from StockApis.Kiwoom import objects
+from StockApis.Kiwoom import controllers
 from utils import CONFIG
 
 import threading
@@ -12,9 +12,9 @@ class Account:
 
     def __init__(
             self,
-            controller: objects.Controller,
+            controller: controllers.Controller,
             controller_lock: threading.Lock,
-            queue_object: objects.QueueController,
+            queue_object: controllers.QueueController,
     ):
         self.__str = RequestHeader.Account
         self._controller = controller
@@ -114,9 +114,9 @@ class Trade:
     """
     def __init__(
             self,
-            controller: objects.Controller,
+            controller: controllers.Controller,
             controller_lock: threading.Lock,
-            queue_controller: objects.QueueController,
+            queue_controller: controllers.QueueController,
             account_object: Account
     ):
         self.__str = RequestHeader.Trade
@@ -242,9 +242,9 @@ class Price:
     """
     def __init__(
             self,
-            controller: objects.Controller,
+            controller: controllers.Controller,
             controller_lock: threading.Lock,
-            queue_object: objects.QueueController,
+            queue_object: controllers.QueueController,
             stock_code
     ):
         self.__str = RequestHeader.Price

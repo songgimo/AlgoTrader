@@ -3,16 +3,16 @@ import time
 import atexit
 import json
 
-from StockApis.Kiwoom import kiwoom, receiver, consts, objects
+from StockApis.Kiwoom import kiwoom, receiver, consts, controllers
 from utils import REDIS_SERVER, CONFIG, DEBUG
 
 
 class AccountRefresher(threading.Thread):
     def __init__(
             self,
-            controller: objects.Controller,
+            controller: controllers.Controller,
             controller_lock: threading.Lock,
-            queue_controller: objects.QueueController,
+            queue_controller: controllers.QueueController,
     ):
         super().__init__()
         self.account = kiwoom.Account(
@@ -47,9 +47,9 @@ class Sender(threading.Thread):
     """
     def __init__(
             self,
-            controller: objects.Controller,
+            controller: controllers.Controller,
             controller_lock: threading.Lock,
-            queue_controller: objects.QueueController,
+            queue_controller: controllers.QueueController,
             account_refresher: AccountRefresher,
             code_list: str
     ):
@@ -155,9 +155,9 @@ class Sender(threading.Thread):
 class Trader(threading.Thread):
     def __init__(
             self,
-            controller: objects.Controller,
+            controller: controllers.Controller,
             controller_lock: threading.Lock,
-            queue_controller: objects.QueueController,
+            queue_controller: controllers.QueueController,
             account_object: kiwoom.Account
     ):
         super().__init__()
@@ -251,10 +251,10 @@ if __name__ == '__main__':
     from PyQt5.QtWidgets import QApplication
     app = QApplication([])
 
-    ctrl = objects.Controller()
+    ctrl = controllers.Controller()
     ctrl_lock = threading.Lock()
 
-    queue_ctrl = objects.QueueController()
+    queue_ctrl = controllers.QueueController()
 
     REDIS_SERVER.flush_all()
 

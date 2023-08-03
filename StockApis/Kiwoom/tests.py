@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QApplication
 from utils import CONFIG
 from StockApis.Kiwoom.runner import Sender, Trader
-from StockApis.Kiwoom import receiver, objects
+from StockApis.Kiwoom import receiver, controllers
 
 import threading
 
@@ -9,10 +9,10 @@ import threading
 def sender_test():
     app = QApplication([])
 
-    ctrl = objects.Controller()
+    ctrl = controllers.Controller()
     ctrl_lock = threading.Lock()
 
-    queue_ctrl = objects.QueueController()
+    queue_ctrl = controllers.QueueController()
 
     sd = Sender(
         ctrl,
