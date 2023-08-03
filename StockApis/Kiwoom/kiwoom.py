@@ -24,12 +24,17 @@ class Account:
         self.account_info = self.AccountInfo(self)
         self.account = CONFIG["kiwoom"]["account"]
 
+        self._set_flag = False
+
     class AccountInfo:
         def __init__(self, parent):
             self._parent = parent
 
-            self.cash_balance = 0
+            self.cash_balance = None
             self.stock_info = None
+
+    def is_set_account_info(self):
+        return self._set_flag
 
     def get_account_list(self):
         return self._controller.get_account_list()
@@ -37,8 +42,9 @@ class Account:
     def get_use_balance_percent(self):
         return int(float(CONFIG["kiwoom"]["use-balance-percent"]) * self.account_info.cash_balance)
 
-    def get_use_stock_percent(self):
-        return int(float(CONFIG["kiwoom"]["use-balance-percent"]) * self.account_info.stock_info)
+    def get_use_stock_percent(self, code):
+        result = int(float(CONFIG["kiwoom"]["use-balance-percent"]) * self.account_info.stock_info[code])
+        return 1 if result == 0 else result
 
     def set_account_info(self):
         with self._controller_lock:
@@ -61,6 +67,7 @@ class Account:
         self.account_info.cash_balance = remaining_info["cash_balance"]
         self.account_info.stock_info = remaining_info["stock_balance"]
 
+        self._set_flag = True
 
 class SetPriceCode:
     """
@@ -170,7 +177,7 @@ class Trade:
             use_balance = self.account_object.get_use_balance_percent()
             self._qty = use_balance // self._price
         elif self.order_code_object.order_str == "sell":
-            self._qty = self.account_object.get_use_stock_percent()
+            self._qty = self.account_object.get_use_stock_percent(self._stock_code)
 
     def execute(self):
         if not self._validate_check:
@@ -199,10 +206,11 @@ class Trade:
             self._controller.send_order(*order_parameters)
 
         trade_queue = self._queue_object.get(self._request_name)
-
-        order_number = trade_queue.get(True, timeout=10)
-
-        return order_number
+        try:
+            order_number = trade_queue.get(True, timeout=10)
+            return order_number
+        except:
+            return 0
 
 
 class Common:

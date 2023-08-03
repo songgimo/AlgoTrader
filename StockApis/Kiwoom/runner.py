@@ -185,6 +185,11 @@ class Trader(threading.Thread):
             self._traded_info = json.loads(file.read())
 
     def run(self) -> None:
+        while not acc_refresher.account.is_set_account_info():
+            print("account-info set 대기 중")
+            time.sleep(5)
+
+        print("setting signal 확인.")
         while True:
             signal_data = REDIS_SERVER.pop(consts.RequestHeader.Trade)
 
@@ -206,7 +211,7 @@ class Trader(threading.Thread):
 
             trade_type = CONFIG["kiwoom"]["trade-type"]
 
-            if symbol in self._traded_info[trade_type].keys():
+            if symbol in self._traded_info[trade_type]:
                 continue
 
             self.trade_object.set_symbol(symbol)
