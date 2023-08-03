@@ -28,17 +28,17 @@ class Account:
         def __init__(self, parent):
             self._parent = parent
 
-            self.cash_balance = None
+            self.cash_balance = 0
             self.stock_info = None
 
     def get_account_list(self):
         return self._controller.get_account_list()
 
     def get_use_balance_percent(self):
-        return int(CONFIG["kiwoom"]["use-balance-percent"] * self.account_info.cash_balance)
+        return int(float(CONFIG["kiwoom"]["use-balance-percent"]) * self.account_info.cash_balance)
 
     def get_use_stock_percent(self):
-        return int(CONFIG["kiwoom"]["use-balance-percent"] * self.account_info.stock_info)
+        return int(float(CONFIG["kiwoom"]["use-balance-percent"]) * self.account_info.stock_info)
 
     def set_account_info(self):
         with self._controller_lock:
@@ -162,8 +162,8 @@ class Trade:
     def set_screen_number(self, number):
         self._screen_number = number
 
-    def set_trade_price(self, price):
-        self._price = price
+    def set_trade_price(self, price: str):
+        self._price = int(price)
 
     def set_quantity(self):
         if self.order_code_object.order_str == "buy":

@@ -154,13 +154,20 @@ class TxEventReceiver(threading.Thread):
             recode_name: str
     ):
         data = {}
-        cash_balance = self._controller.get_common_data(transaction_code, recode_name, Etc.Repeat, '예수금')
-        data['cash_balance'] = re.sub(r'[^\d]', '', cash_balance)
+        cash_balance = self._controller.get_common_data(transaction_code, recode_name, Etc.NoRepeat, '예수금')
+        data['cash_balance'] = int(re.sub(r'[^\d]', '', cash_balance))
         data['stock_balance'] = dict()
+        code_list = []
+        stock_prices = []
         for i in range(self._controller.get_repeat_count(transaction_code, request_name)):
             code = self._controller.get_common_data_with_repeat(transaction_code, request_name, i, '종목코드')
             current_stock = self._controller.get_common_data_with_repeat(transaction_code, request_name, i, '보유수량')
-            data['stock_balance'][code] = current_stock
+            code_list.append(code)
+            stock_prices.append(int(current_stock))
+
+        replace = re.findall("\d+", ";".join(code_list))
+
+        data['stock_balance'] = {key: val for key, val in zip(replace, stock_prices)}
 
         return data
 

@@ -6,6 +6,36 @@ from StockApis.Kiwoom import kiwoom, receiver, consts, objects
 from utils import REDIS_SERVER, CONFIG, DEBUG
 
 
+class AccountRefresher(threading.Thread):
+    def __init__(
+            self,
+            controller: objects.Controller,
+            controller_lock: threading.Lock,
+            queue_controller: objects.QueueController,
+    ):
+        super().__init__()
+        self.account = kiwoom.Account(
+            controller,
+            controller_lock,
+            queue_controller
+        )
+
+        self.event = threading.Event()
+
+    def set_ready(self):
+        self.event.set()
+
+    def run(self) -> None:
+        self.event.wait()
+        while True:
+            self.account.set_account_info()
+
+            if DEBUG:
+                print(self.account.account_info.stock_info, self.account.account_info.cash_balance)
+
+            time.sleep(10)
+
+
 class Sender(threading.Thread):
     """
         Sender는 TxReceiver와 RealTxThread의 마스터임.
@@ -19,6 +49,7 @@ class Sender(threading.Thread):
             controller: objects.Controller,
             controller_lock: threading.Lock,
             queue_controller: objects.QueueController,
+            account_refresher: AccountRefresher,
             code_list: str
     ):
         super().__init__()
@@ -28,6 +59,7 @@ class Sender(threading.Thread):
         self.controller_lock = controller_lock
 
         self.queue_controller = queue_controller
+        self.account_refresher = account_refresher
 
         self.event = threading.Event()
 
@@ -77,6 +109,8 @@ class Sender(threading.Thread):
             except:
                 print("로그인 대기 중입니다.")
             time.sleep(1)
+
+        self.account_refresher.set_ready()
         print("로그인 완료.")
 
         self.real_current_price_setter()
@@ -151,6 +185,11 @@ class Trader(threading.Thread):
         while True:
             signal_data = REDIS_SERVER.pop(consts.RequestHeader.Trade)
 
+            if DEBUG:
+                signal_data = {
+                    "symbol": "005930",
+                    "price": "69900"
+                }
             if not signal_data:
                 time.sleep(0.1)
                 continue
@@ -161,51 +200,30 @@ class Trader(threading.Thread):
             if DEBUG:
                 print(f"###### signal received, from Trade, {signal_data=} ######")
                 time.sleep(3)
+
+            if symbol in self._traded_symbol:
+                continue
+
+            self.trade_object.set_symbol(symbol)
+            self.trade_object.set_screen_number(symbol[4:])
+            self.trade_object.set_trade_price(price)
+
+            self.trade_object.price_code_object.set_market()
+            if CONFIG["kiwoom"]["trade-type"] == "buy":
+                self.trade_object.order_code_object.set_buy()
             else:
-                if symbol in self._traded_symbol:
-                    continue
+                self.trade_object.order_code_object.set_sell()
 
-                self.trade_object.set_symbol(symbol)
-                self.trade_object.set_trade_price(price)
-                self.trade_object.set_quantity()
-                self.trade_object.set_screen_number(symbol[4:])
+            self.trade_object.set_quantity()
 
-                self.trade_object.price_code_object.set_market()
-                if CONFIG["kiwoom"]["trade-type"] == "buy":
-                    self.trade_object.order_code_object.set_buy()
-                else:
-                    self.trade_object.order_code_object.set_sell()
-                self.trade_object.validate()
-                result = self.trade_object.execute()
+            self.trade_object.validate()
+            result = self.trade_object.execute()
 
-                if result:
-                    self._traded_symbol.append(symbol)
+            if result:
+                self._traded_symbol.append(symbol)
+                self.write_traded_symbol(symbol)
 
             time.sleep(0.1)
-
-
-class AccountRefresher(threading.Thread):
-    def __init__(
-            self,
-            controller: objects.Controller,
-            controller_lock: threading.Lock,
-            queue_controller: objects.QueueController,
-    ):
-        super().__init__()
-        self.account = kiwoom.Account(
-            controller,
-            controller_lock,
-            queue_controller
-        )
-
-    def run(self) -> None:
-        while True:
-            self.account.set_account_info()
-
-            if DEBUG:
-                print(self.account.account_info.stock_info, self.account.account_info.cash_balance)
-
-            time.sleep(10)
 
 
 def delete_kiwoom_data():
@@ -230,10 +248,17 @@ if __name__ == '__main__':
 
     REDIS_SERVER.flush_all()
 
+    acc_refresher = AccountRefresher(
+        ctrl,
+        ctrl_lock,
+        queue_ctrl,
+    )
+
     sd = Sender(
         ctrl,
         ctrl_lock,
         queue_ctrl,
+        acc_refresher,
         CONFIG["kiwoom"]["codes"],
     )
 
@@ -241,22 +266,15 @@ if __name__ == '__main__':
 
     sd.start()
 
-    acc_object = AccountRefresher(
+    acc_refresher.start()
+
+    td = Trader(
         ctrl,
         ctrl_lock,
         queue_ctrl,
+        acc_refresher.account
     )
 
-    acc_object.start()
-
-    for _ in range(2):
-        td = Trader(
-            ctrl,
-            ctrl_lock,
-            queue_ctrl,
-            acc_object.account.account_info
-        )
-
-        td.start()
+    td.start()
 
     app.exec_()
