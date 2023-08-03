@@ -135,6 +135,18 @@ class Trader(threading.Thread):
         self._traded_symbol = []
         self.account_object = account_object
 
+        self.read_traded_symbol()
+
+    def write_traded_symbol(self, traded_symbol):
+        with open(consts.TRADED_SYMBOL_PATH, "a") as file:
+            file.write(traded_symbol)
+
+    def read_traded_symbol(self):
+        with open(consts.TRADED_SYMBOL_PATH, "r") as file:
+            contents = file.read().split("\n")
+
+        self._traded_symbol = contents
+
     def run(self) -> None:
         while True:
             signal_data = REDIS_SERVER.pop(consts.RequestHeader.Trade)

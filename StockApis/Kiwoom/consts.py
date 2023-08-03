@@ -1,3 +1,4 @@
+import os
 class TxCode:
     class Get:
         StockInfo = "opt10001"
@@ -35,3 +36,7 @@ class RequestHeader:
 class Etc:
     NoRepeat = 0
     Repeat = 2
+
+
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+TRADED_SYMBOL_PATH = ROOT_DIR + "/" + "kiwoom_info.txt"
