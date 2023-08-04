@@ -69,7 +69,10 @@ class Sender(threading.Thread):
             self.queue_controller
         )
         self.real_tx_thread = receiver.RealTxEventReceiver()
-        self.message_thread = receiver.MessageReceiver()
+        self.chejan_thread = receiver.OnChejanEventReceiver(
+            self.controller,
+            self.controller_lock,
+        )
 
         self.queue_controller.add("login_queue")
         self.event_thread = receiver.OnEventReceiver(
@@ -81,7 +84,8 @@ class Sender(threading.Thread):
         self.controller.controller.OnReceiveTrData.connect(self.tx_thread.receive_data)
         self.controller.controller.OnReceiveRealData.connect(self.real_tx_thread.receive_data)
         self.controller.controller.OnEventConnect.connect(self.event_thread.receive_data)
-        self.controller.controller.OnReceiveMsg.connect(self.event_thread.receive_data)
+        self.controller.controller.OnReceiveMsg.connect(self.event_thread.receive_message_data)
+        self.controller.controller.OnReceiveChejanData.connect(self.chejan_thread.receive_data)
 
         self.ready_flag = False
 
@@ -101,7 +105,7 @@ class Sender(threading.Thread):
         threads = [
             self.tx_thread,
             self.real_tx_thread,
-            self.message_thread,
+            self.chejan_thread
         ]
 
         for thread in threads:
@@ -123,7 +127,6 @@ class Sender(threading.Thread):
         print("로그인 완료.")
 
         self.real_current_price_setter()
-        self.real_account_setter()
         history_data = dict()
         for code in self.code_list:
             price_object = kiwoom.Price(

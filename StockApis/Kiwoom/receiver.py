@@ -303,10 +303,19 @@ class OnEventReceiver(threading.Thread):
         if code == 0:
             self._queue_controller.put_data("login_queue", "T")
 
+    def receive_message_data(self, *args):
+        print(f"get message, {args}")
 
-class MessageReceiver(threading.Thread):
-    def __init__(self):
+
+class OnChejanEventReceiver(threading.Thread):
+    def __init__(
+            self,
+            controller: controllers.Controller,
+            controller_lock: threading.Lock,
+    ):
         super().__init__()
+        self._controller = controller
+        self._controller_lock = controller_lock
         self.daemon = True
         self.event = threading.Event()
 
@@ -314,4 +323,9 @@ class MessageReceiver(threading.Thread):
         self.event.wait()
 
     def receive_data(self, *args):
-        print(f"get message, {args}")
+        code, real_type, real_data = args
+        print(args)
+        with self._controller_lock:
+            fid_list = real_data.split(';')
+            for each in fid_list:
+                self._controller.get_chejan_data(each)

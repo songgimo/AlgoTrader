@@ -84,6 +84,9 @@ class Controller:
             wrap
         )
 
+    def get_chejan_data(self, fid: str):
+        return self.controller.dynamicCall('GetChejanData(int)', [int(fid)])
+
     def get_common_data_with_repeat(
             self,
             transaction_code,
