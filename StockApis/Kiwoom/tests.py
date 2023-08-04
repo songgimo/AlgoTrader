@@ -1,39 +1,62 @@
-from PyQt5.QtWidgets import QApplication
-from utils import CONFIG
-from StockApis.Kiwoom.runner import Sender, Trader
-from StockApis.Kiwoom import receiver, controllers
-
 import threading
 
+from PyQt5.QtWidgets import QApplication
+from StockApis.Kiwoom.runner import Runner
+from StockApis.Kiwoom import receiver, controllers, consts
 
-def sender_test():
-    app = QApplication([])
+from utils import REDIS_SERVER, CONFIG, DEBUG
 
-    ctrl = controllers.Controller()
-    ctrl_lock = threading.Lock()
+import json
+import time
 
-    queue_ctrl = controllers.QueueController()
 
-    sd = Sender(
-        ctrl,
-        ctrl_lock,
-        queue_ctrl,
-        CONFIG["kiwoom"]["codes"],
-    )
+class BasicRunning(threading.Thread):
+    def __init__(self):
+        super().__init__()
+        self._runner = Runner()
+        self._runner.start_communicators()
 
-    sd.start()
+    def test_trade_signal_buy(self):
+        data = {"symbol": "005930", "price": "69900", "trade_type": "buy"}
+        REDIS_SERVER.push(consts.RequestHeader.Trade, data)
 
-    for _ in range(2):
-        td = Trader(
-            ctrl,
-            ctrl_lock,
-            queue_ctrl,
-        )
+    def test_trade_signal_sell(self):
+        data = {"symbol": "005930", "price": "69900", "trade_type": "sell"}
+        REDIS_SERVER.push(consts.RequestHeader.Trade, data)
 
-        td.start()
+    def test_get_history_data(self):
+        data = REDIS_SERVER.get(consts.RequestHeader.Price)
+        print(json.loads(data))
 
-    app.exec_()
+    def test_account_refresh(self):
+        for i in range(60):
+            if i % 2:
+                self.test_trade_signal_buy()
+            else:
+                self.test_trade_signal_sell()
+
+            print(
+                self._runner._account_refresher.account.account_info.stock_info,
+                self._runner._account_refresher.account.account_info.cash_balance
+            )
+            time.sleep(2)
+
+    def run(self) -> None:
+        # exec_로 인한 시간차 테스팅 시작
+        while not self._runner._sender.ready_flag:
+            time.sleep(1)
+
+        time.sleep(10)
+
+        print("##### ##### ##### #####")
+        print("##### Start Test! #####")
+        print("##### ##### ##### #####")
+        self.test_account_refresh()
 
 
 if __name__ == '__main__':
-    sender_test()
+    app = QApplication([])
+    br = BasicRunning()
+    br.start()
+
+    app.exec_()
