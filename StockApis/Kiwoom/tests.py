@@ -26,7 +26,7 @@ class BasicRunning(threading.Thread):
 
     def test_get_history_data(self):
         data = REDIS_SERVER.get(consts.RequestHeader.Price)
-        print(json.loads(data))
+        print(data)
 
     def test_account_refresh(self):
         for i in range(60):
@@ -51,7 +51,7 @@ class BasicRunning(threading.Thread):
         print("##### ##### ##### #####")
         print("##### Start Test! #####")
         print("##### ##### ##### #####")
-        self.test_account_refresh()
+        self.test_get_history_data()
 
 
 if __name__ == '__main__':
