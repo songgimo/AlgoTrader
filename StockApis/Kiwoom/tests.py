@@ -30,7 +30,7 @@ class BasicRunning(threading.Thread):
 
     def test_account_refresh(self):
         for i in range(60):
-            if i % 2:
+            if not i % 10:
                 self.test_trade_signal_buy()
             else:
                 self.test_trade_signal_sell()
@@ -39,7 +39,7 @@ class BasicRunning(threading.Thread):
                 self._runner._account_refresher.account.account_info.stock_info,
                 self._runner._account_refresher.account.account_info.cash_balance
             )
-            time.sleep(2)
+            time.sleep(5)
 
     def run(self) -> None:
         # exec_로 인한 시간차 테스팅 시작
@@ -51,7 +51,7 @@ class BasicRunning(threading.Thread):
         print("##### ##### ##### #####")
         print("##### Start Test! #####")
         print("##### ##### ##### #####")
-        self.test_get_history_data()
+        self.test_account_refresh()
 
 
 if __name__ == '__main__':
