@@ -69,6 +69,7 @@ class Sender(threading.Thread):
             self.queue_controller
         )
         self.real_tx_thread = receiver.RealTxEventReceiver()
+        self.message_thread = receiver.MessageReceiver()
 
         self.queue_controller.add("login_queue")
         self.event_thread = receiver.OnEventReceiver(
@@ -80,6 +81,7 @@ class Sender(threading.Thread):
         self.controller.controller.OnReceiveTrData.connect(self.tx_thread.receive_data)
         self.controller.controller.OnReceiveRealData.connect(self.real_tx_thread.receive_data)
         self.controller.controller.OnEventConnect.connect(self.event_thread.receive_data)
+        self.controller.controller.OnReceiveMsg.connect(self.event_thread.receive_data)
 
         self.ready_flag = False
 
@@ -98,7 +100,8 @@ class Sender(threading.Thread):
     def run(self):
         threads = [
             self.tx_thread,
-            self.real_tx_thread
+            self.real_tx_thread,
+            self.message_thread,
         ]
 
         for thread in threads:

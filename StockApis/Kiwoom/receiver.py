@@ -292,3 +292,16 @@ class OnEventReceiver(threading.Thread):
     def receive_data(self, code):
         if code == 0:
             self._queue_controller.put_data("login_queue", "T")
+
+
+class MessageReceiver(threading.Thread):
+    def __init__(self):
+        super().__init__()
+        self.daemon = True
+        self.event = threading.Event()
+
+    def run(self) -> None:
+        self.event.wait()
+
+    def receive_data(self, *args):
+        print(f"get message, {args}")
