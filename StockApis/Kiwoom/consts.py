@@ -1,4 +1,6 @@
 import os
+
+
 class TxCode:
     class Get:
         StockInfo = "opt10001"
@@ -31,6 +33,7 @@ class RequestHeader:
     Price = "price"
     Common = "common"
     Account = "account"
+    TradeInfo = "tradeinfo"
 
 
 class Etc:
