@@ -26,6 +26,7 @@ class TxCode:
 class RealReg:
     CurrentPrice = "currentprice"
     Orderbook = "orderbook"
+    Account = "account"
 
 
 class RequestHeader:

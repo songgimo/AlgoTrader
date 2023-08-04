@@ -120,6 +120,7 @@ class Sender(threading.Thread):
         print("로그인 완료.")
 
         self.real_current_price_setter()
+        self.real_account_setter()
         history_data = dict()
         for code in self.code_list:
             price_object = kiwoom.Price(
@@ -153,6 +154,17 @@ class Sender(threading.Thread):
 
         self.real_orderbook_block.define_to_orderbook_block()
         self.real_orderbook_block.init_block_list(
+            self.code_list
+        )
+
+    def real_account_setter(self):
+        self.real_account_block = receiver.RealRegBlock(
+            self.controller,
+            self.controller_lock
+        )
+
+        self.real_account_block.define_to_orderbook_block()
+        self.real_account_block.init_block_list(
             self.code_list
         )
 
@@ -211,7 +223,6 @@ class Trader(threading.Thread):
 
             if DEBUG:
                 print(f"###### signal received, from Trade, {signal_data=} ######")
-                time.sleep(3)
 
             if symbol in self._traded_info[trade_type]:
                 continue
@@ -232,7 +243,8 @@ class Trader(threading.Thread):
             result = self.trade_object.execute()
 
             if result:
-                self._traded_info[trade_type].append(symbol)
-                self.write_traded_info()
+                if not DEBUG:
+                    self._traded_info[trade_type].append(symbol)
+                    self.write_traded_info()
 
             time.sleep(0.1)

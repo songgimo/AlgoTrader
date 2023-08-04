@@ -34,13 +34,23 @@ class RealRegBlock:
         if self.real_reg_type is None:
             self.real_reg_type = RealReg.CurrentPrice
             self.fid_code = ";".join([close, open_, high, low])
-            self.screen_number = "1001"
+            self.screen_number = "0001"
 
     def define_to_orderbook_block(self):
         if self.real_reg_type is None:
             self.real_reg_type = RealReg.Orderbook
             self.fid_code = "20"
-            self.screen_number = "1002"
+            self.screen_number = "0002"
+
+    def define_to_account_block(self):
+        close = "10"
+        amount = "930"
+        buy_price = "931"
+
+        if self.real_reg_type is None:
+            self.real_reg_type = RealReg.Account
+            self.fid_code = ";".join([close, amount, buy_price])
+            self.screen_number = "0003"
 
     def init_block_list(
             self,
@@ -265,6 +275,8 @@ class RealTxEventReceiver(threading.Thread):
                 self.orderbook_price_dict[stock_code].append(real_data)
 
             REDIS_SERVER.set(RealReg.Orderbook, self.orderbook_price_dict)
+        elif real_type == "잔고":
+            print(real_data)
 
 
 class OnEventReceiver(threading.Thread):
