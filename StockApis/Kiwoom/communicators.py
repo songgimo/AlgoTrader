@@ -171,6 +171,17 @@ class Sender(threading.Thread):
             self.code_list
         )
 
+    def real_operate_time_setter(self):
+        self.real_operate_time_block = receiver.RealRegBlock(
+            self.controller,
+            self.controller_lock
+        )
+
+        self.real_operate_time_block.define_to_stock_price_block()
+        self.real_operate_time_block.init_block_list(
+            self.code_list
+        )
+
 
 class Trader(threading.Thread):
     def __init__(

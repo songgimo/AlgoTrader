@@ -27,6 +27,7 @@ class RealReg:
     CurrentPrice = "currentprice"
     Orderbook = "orderbook"
     Account = "account"
+    OperateTime = "operatetime"
 
 
 class RequestHeader:

@@ -52,6 +52,16 @@ class RealRegBlock:
             self.fid_code = ";".join([close, amount, buy_price])
             self.screen_number = "0003"
 
+    def define_start_market_time_block(self):
+        trade_time = "20"
+        remain_time = "214"
+        operate_check = "215"
+
+        if self.real_reg_type is None:
+            self.real_reg_type = RealReg.OperateTime
+            self.fid_code = ";".join([trade_time, remain_time, operate_check])
+            self.screen_number = "0004"
+
     def init_block_list(
             self,
             code_list: list,
@@ -231,7 +241,7 @@ class RealTxEventReceiver(threading.Thread):
             stock_code, real_type, real_data = args
         except:
             return
-
+        print(real_type, real_data)
         if real_type in ["주식시세", "주식체결"]:
             real_data = real_data.split("\t")
             close = abs(int(real_data[1]))
