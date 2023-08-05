@@ -128,6 +128,7 @@ class TxEventReceiver(threading.Thread):
             queue_object: controllers.QueueController
     ):
         super().__init__()
+        self.setName("TxEventReceiver")
         self._controller = controller
         self._controller_lock = controller_lock
         self._queue_object = queue_object
@@ -226,6 +227,7 @@ class RealTxEventReceiver(threading.Thread):
             self,
     ):
         super().__init__()
+        self.setName("RealTxEventReceiver")
         self.daemon = True
 
         self.current_price_dict = dict()
@@ -292,6 +294,7 @@ class RealTxEventReceiver(threading.Thread):
 class OnEventReceiver(threading.Thread):
     def __init__(self, queue_controller: controllers.QueueController):
         super().__init__()
+        self.setName("OnEventReceiver")
         self.daemon = True
         self._queue_controller = queue_controller
         self.event = threading.Event()
@@ -314,6 +317,7 @@ class OnChejanEventReceiver(threading.Thread):
             controller_lock: threading.Lock,
     ):
         super().__init__()
+        self.setName("OnEventReceiver")
         self._controller = controller
         self._controller_lock = controller_lock
         self.daemon = True

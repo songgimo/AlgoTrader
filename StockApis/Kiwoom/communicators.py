@@ -14,6 +14,7 @@ class AccountRefresher(threading.Thread):
             queue_controller: controllers.QueueController,
     ):
         super().__init__()
+        self.setName("AccountRefresher")
         self.account = kiwoom.Account(
             controller,
             controller_lock,
@@ -53,6 +54,7 @@ class Sender(threading.Thread):
             code_list: str
     ):
         super().__init__()
+        self.setName("SenderThread")
         self.code_list = code_list.split(";")
 
         self.controller = controller
@@ -195,6 +197,7 @@ class Trader(threading.Thread):
             account_object: kiwoom.Account
     ):
         super().__init__()
+        self.setName("Trader")
         self.trade_object = kiwoom.Trade(
             controller,
             controller_lock,

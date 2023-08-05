@@ -42,5 +42,5 @@ class Runner:
 
 if __name__ == '__main__':
     app = QApplication([])
-
+    Runner().start_communicators()
     app.exec_()
