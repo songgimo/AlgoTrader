@@ -1,0 +1,46 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        
+        {
+            "name": "Python: kiwoom-tests",
+            "type": "python",
+            "request": "launch",
+            "program": "StockApis/Kiwoom/tests.py",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+        },
+        {
+            "name": "Python: kiwoom-runner",
+            "type": "python",
+            "request": "launch",
+            "program": "StockApis/Kiwoom/runner.py",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+        },
+        {
+            "name": "Python: algo-test",
+            "type": "python",
+            "request": "launch",
+            "program": "AlgoTrader/tests.py",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+        },
+        {
+            "name": "Python: algo-runner",
+            "type": "python",
+            "request": "launch",
+            "program": "AlgoTrader/runner.py",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+        },
+
+    ]
+}
