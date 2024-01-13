@@ -9,7 +9,7 @@ import indicators
 import time
 
 from utils import REDIS_SERVER, DEBUG, CONFIG
-from StockApis.Kiwoom import consts as kiwoom_consts
+from backup.StockApis.Kiwoom import consts as kiwoom_consts
 from objects import CandleContainer
 
 

@@ -1,9 +1,8 @@
-from AlgoTrader.calculators import (
-    StockRefresher,
-    Stock
+from backup.AlgoTrader.calculators import (
+    StockRefresher
 )
 
-from AlgoTrader.indicators import IndicatorNode
+from backup.AlgoTrader.indicators import IndicatorNode
 
 from objects import CandleContainer
 

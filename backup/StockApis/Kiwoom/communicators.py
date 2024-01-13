@@ -2,8 +2,9 @@ import threading
 import time
 import json
 
-from StockApis.Kiwoom import kiwoom, receiver, consts, controllers
-from utils import REDIS_SERVER, CONFIG, DEBUG
+from StockApis.Kiwoom import kiwoom, receiver, controllers
+from backup.StockApis.Kiwoom import consts
+from utils import REDIS_SERVER, DEBUG
 
 
 class AccountRefresher(threading.Thread):

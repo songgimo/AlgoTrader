@@ -2,11 +2,10 @@ import threading
 
 from PyQt5.QtWidgets import QApplication
 from StockApis.Kiwoom.runner import Runner
-from StockApis.Kiwoom import receiver, controllers, consts
+from backup.StockApis.Kiwoom import consts
 
-from utils import REDIS_SERVER, CONFIG, DEBUG
+from utils import REDIS_SERVER
 
-import json
 import time
 
 
